@@ -1,82 +1,60 @@
-# 🏰 Medieval Guard Post Asset Gallery
+# Sandboxels
+A falling sand simulation game with hundreds of elements, heat simulation, chemical reactions, fire, density, electricity, and more.
 
-A beautiful web gallery showcasing cartoon medieval 2D level set assets from CraftPix.
+Play for free at [Sandboxels.R74n.com](https://sandboxels.r74n.com/).
 
-## 🎨 Features
+Join the [Discord server](https://discord.com/invite/ejUc6YPQuS).
 
-- **Interactive Asset Gallery**: Browse through different categories of medieval assets
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
-- **Search Functionality**: Find specific assets quickly with the search bar
-- **Image Zoom**: Click on any asset to view it in full size
-- **Category Filtering**: Filter assets by Background, Building, Environment, and Platformer
-- **Smooth Animations**: Beautiful hover effects and transitions
+![Landscape made in Sandboxels](https://raw.githubusercontent.com/R74nCom/sandboxels/main/icons/cover-3840x1240px-text.png)
+ 
+# Controls
 
-## 📁 Asset Categories
+## Mouse & Keyboard
+ * Left Click = Draw pixels
+ * Right Click = Erase pixels
+ * Middle Click = Pick element
+ * Space or P = Pause simulation
+ * Shift + Heat/Cool/Shock = Intensify effect
+ * Shift + Click = Draw line
+ * Scroll or +- or [] = Change cursor size
+ * ←→ = Change category
+ * E = Select by name
+ * I or / = Element info
+ * \ = Open settings
+ * &gt; = Single step
+ * F or F11 = Fullscreen
+ * 1234 = Change view
+ * F1 = Toggle GUI
+ * C or F2 = Capture screenshot
+ * G = Toggle gesture control
 
-### 🌅 Background
-- Layer 00 & Layer 01 backgrounds for depth effects
+(Alt/Option can be used in place of Shift)
 
-### 🏗️ Building Components
-- **Walls**: 3 different wall types (A, B, C) with variations
-- **Roofs**: 2 roof styles (A, B) with multiple pieces
-- **Doors & Windows**: Various door and window designs
-- **Pillars & Structures**: Support pillars and ladders
-- **Decorative Elements**: Canopies, chimneys, and decorations
+## Gesture Control 🆕
+Experience Sandboxels with webcam-based hand gesture control!
 
-### 🌳 Environment Objects
-- **Nature**: Trees, grass patches
-- **Furniture**: Tables, chairs, storage items
-- **Decorative**: Banners, shields, flagpoles
-- **Interactive**: Quest boards, shops, stalls
+ * **Index finger** = Control cursor position
+ * **Pinch gesture** (thumb + index) = Click/place elements
+ * **Two-finger pinch** (thumb + middle) = Right-click/erase
+ * **Open palm** = Pause/unpause simulation
+ * **Closed fist** = Clear element selection
 
-### 🎮 Platformer Ground Tiles
-- 13 different ground tile variations for platformer games
+**Setup**: Click the 👋 button or press 'G' to enable. Requires camera permissions.
+**Requirements**: Chrome/Edge browser, webcam, good lighting.
 
-## 🚀 Live Demo
+See [GESTURE_CONTROL_README.md](GESTURE_CONTROL_README.md) for detailed setup and troubleshooting.
 
-Visit the live gallery: [Your GitHub Pages URL will be here]
-
-## 💻 Technologies Used
-
-- **HTML5**: Semantic markup structure
-- **CSS3**: Modern styling with gradients, animations, and grid layout
-- **JavaScript**: Interactive functionality and dynamic content
-- **Responsive Design**: Mobile-first approach
-
-## 📱 Responsive Features
-
-- Adaptive grid layout that works on all screen sizes
-- Touch-friendly navigation for mobile devices
-- Optimized image loading and display
-
-## 🎯 Usage
-
-1. **Browse Assets**: Use the navigation buttons to filter by category
-2. **Search**: Type in the search bar to find specific assets
-3. **View Details**: Click on any asset to see it in full size
-4. **Download**: Right-click on images to save them (subject to license terms)
-
-## 📄 License
-
-Assets are from [CraftPix](https://craftpix.net) - Please check their [license terms](https://craftpix.net/file-licenses/) for usage rights.
-
-## 🛠️ Local Development
-
-1. Clone this repository
-2. Open `index.html` in your browser
-3. No build process required - it's pure HTML/CSS/JS!
-
-## 🎨 Customization
-
-The website is easily customizable:
-- Modify colors in `style.css`
-- Add more assets by updating the HTML structure
-- Extend functionality in `script.js`
-
-## 📞 Contact
-
-Created for asset showcase and portfolio purposes.
-
----
-
-**Note**: This is a showcase gallery. Please respect the original asset license terms from CraftPix.
+# Button Info
+ * Pause           =  Pause/play the simulation
+ * Step (&gt;)     =  Run a single frame
+ * Minus (-)       =  Decrease the cursor size
+ * Plus  (+)       =  Increase the cursor size
+ * Reset           =  Clears the entire simulation
+ * Replace         =  Overrides pixels when placing
+ * E               =  Select any element by name
+ * 👋 (Gesture)    =  Toggle webcam gesture control
+ * TPS             =  Change how fast the simulation runs
+ * Info            =  Open the element info screen
+ * Saves           =  Open the Save & Load menu
+ * Mods            =  Open the Mod Manager
+ * Settings        =  Open the settings menu
