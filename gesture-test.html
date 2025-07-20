@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture Control Test - Sandboxels</title>
+    <style>
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #000;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+        
+        .main-area {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .test-canvas {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border: 1px solid #555;
+            cursor: crosshair;
+            position: relative;
+        }
+        
+        .sidebar {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .status-panel {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 10px;
+        }
+        
+        .status-value {
+            color: #4CAF50;
+        }
+        
+        .test-controls {
+            margin-bottom: 15px;
+        }
+        
+        .test-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 9px;
+        }
+        
+        .test-btn:hover {
+            background: #444;
+        }
+        
+        .test-btn.active {
+            background: #4CAF50;
+        }
+        
+        .gesture-log {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 8px;
+            font-family: monospace;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 5px;
+            border-radius: 2px;
+        }
+        
+        .log-gesture {
+            background: #1a4a1a;
+            color: #4CAF50;
+        }
+        
+        .log-error {
+            background: #4a1a1a;
+            color: #ff4444;
+        }
+        
+        .log-info {
+            background: #1a1a4a;
+            color: #4444ff;
+        }
+        
+        .video-preview {
+            width: 100%;
+            height: 150px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .gesture-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .confidence-meter {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffff44, #44ff44);
+            width: 0%;
+            transition: width 0.2s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .test-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Gesture Control Test Environment</h1>
+    
+    <div class="test-container">
+        <div class="main-area">
+            <h2>Test Canvas</h2>
+            <div class="test-canvas" id="testCanvas">
+                <div class="gesture-indicator" id="gestureIndicator">
+                    <div>Current Gesture: <span id="currentGesture">None</span></div>
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" id="confidenceFill"></div>
+                    </div>
+                </div>
+                <canvas id="drawingCanvas" width="800" height="400" style="width: 100%; height: 100%;"></canvas>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <h3>Test Instructions</h3>
+                <ol style="font-size: 10px; line-height: 1.5;">
+                    <li>Click "Start Camera" to begin gesture detection</li>
+                    <li>Position your hand in front of the camera</li>
+                    <li>Try different gestures and observe the detection</li>
+                    <li>Use the drawing canvas to test gesture interactions</li>
+                    <li>Check the gesture log for detailed information</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="status-panel">
+                <h3 style="margin-top: 0;">System Status</h3>
+                <div class="status-item">
+                    <span>Camera:</span>
+                    <span class="status-value" id="cameraStatus">Disconnected</span>
+                </div>
+                <div class="status-item">
+                    <span>MediaPipe:</span>
+                    <span class="status-value" id="mediapipeStatus">Not Loaded</span>
+                </div>
+                <div class="status-item">
+                    <span>FPS:</span>
+                    <span class="status-value" id="fpsCounter">0</span>
+                </div>
+                <div class="status-item">
+                    <span>Hands Detected:</span>
+                    <span class="status-value" id="handsCount">0</span>
+                </div>
+            </div>
+            
+            <div class="test-controls">
+                <h3>Controls</h3>
+                <button class="test-btn" id="startCameraBtn">Start Camera</button>
+                <button class="test-btn" id="stopCameraBtn" disabled>Stop Camera</button>
+                <button class="test-btn" id="toggleOverlayBtn">Toggle Overlay</button>
+                <button class="test-btn" id="clearCanvasBtn">Clear Canvas</button>
+                <button class="test-btn" id="downloadLogBtn">Download Log</button>
+            </div>
+            
+            <div>
+                <h3>Camera Preview</h3>
+                <video class="video-preview" id="videoPreview" autoplay muted></video>
+            </div>
+            
+            <div>
+                <h3>Gesture Log</h3>
+                <div class="gesture-log" id="gestureLog"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MediaPipe Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+    <script>
+        class GestureTestEnvironment {
+            constructor() {
+                this.camera = null;
+                this.hands = null;
+                this.videoElement = document.getElementById('videoPreview');
+                this.canvas = document.getElementById('drawingCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.isRunning = false;
+                this.gestureLog = [];
+                this.frameCount = 0;
+                this.lastFPSUpdate = Date.now();
+                this.currentFPS = 0;
+                this.showOverlay = true;
+                
+                this.initializeUI();
+                this.checkMediaPipeAvailability();
+            }
+
+            checkMediaPipeAvailability() {
+                if (typeof Hands !== 'undefined') {
+                    this.updateStatus('mediapipeStatus', 'Ready', '#4CAF50');
+                    this.log('MediaPipe Hands library loaded successfully', 'info');
+                } else {
+                    this.updateStatus('mediapipeStatus', 'Failed', '#ff4444');
+                    this.log('MediaPipe Hands library failed to load', 'error');
+                }
+            }
+
+            async initializeCamera() {
+                try {
+                    this.hands = new Hands({
+                        locateFile: (file) => {
+                            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                        }
+                    });
+
+                    this.hands.setOptions({
+                        maxNumHands: 2,
+                        modelComplexity: 1,
+                        minDetectionConfidence: 0.5,
+                        minTrackingConfidence: 0.5
+                    });
+
+                    this.hands.onResults(this.onResults.bind(this));
+
+                    this.camera = new Camera(this.videoElement, {
+                        onFrame: async () => {
+                            if (this.isRunning) {
+                                await this.hands.send({ image: this.videoElement });
+                            }
+                        },
+                        width: 640,
+                        height: 480
+                    });
+
+                    await this.camera.start();
+                    this.isRunning = true;
+                    this.updateStatus('cameraStatus', 'Connected', '#4CAF50');
+                    this.log('Camera initialized successfully', 'info');
+                    
+                } catch (error) {
+                    this.updateStatus('cameraStatus', 'Error', '#ff4444');
+                    this.log(`Camera initialization failed: ${error.message}`, 'error');
+                    throw error;
+                }
+            }
+
+            stopCamera() {
+                if (this.camera) {
+                    this.camera.stop();
+                }
+                this.isRunning = false;
+                this.updateStatus('cameraStatus', 'Disconnected', '#ff9800');
+                this.log('Camera stopped', 'info');
+            }
+
+            onResults(results) {
+                this.frameCount++;
+                this.updateFPS();
+
+                // Clear canvas
+                if (this.showOverlay) {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+
+                let handsDetected = 0;
+                let currentGesture = 'None';
+                let confidence = 0;
+
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    handsDetected = results.multiHandLandmarks.length;
+                    
+                    for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                        const landmarks = results.multiHandLandmarks[i];
+                        const handedness = results.multiHandedness[i];
+                        
+                        // Draw hand landmarks
+                        if (this.showOverlay) {
+                            this.drawHandLandmarks(landmarks);
+                        }
+                        
+                        // Recognize gesture
+                        const gesture = this.recognizeGesture(landmarks);
+                        if (gesture !== 'unknown') {
+                            currentGesture = gesture;
+                            confidence = this.calculateConfidence(landmarks, gesture);
+                            this.log(`Gesture detected: ${gesture} (${handedness.label} hand, confidence: ${confidence.toFixed(2)})`, 'gesture');
+                        }
+                    }
+                }
+
+                // Update UI
+                this.updateStatus('handsCount', handsDetected);
+                document.getElementById('currentGesture').textContent = currentGesture;
+                document.getElementById('confidenceFill').style.width = (confidence * 100) + '%';
+            }
+
+            drawHandLandmarks(landmarks) {
+                this.ctx.fillStyle = '#00FF00';
+                this.ctx.strokeStyle = '#00FF00';
+                this.ctx.lineWidth = 2;
+
+                // Draw landmarks
+                for (const landmark of landmarks) {
+                    const x = landmark.x * this.canvas.width;
+                    const y = landmark.y * this.canvas.height;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                    this.ctx.fill();
+                }
+
+                // Draw connections
+                const connections = [
+                    [0, 1], [1, 2], [2, 3], [3, 4], // Thumb
+                    [0, 5], [5, 6], [6, 7], [7, 8], // Index
+                    [0, 9], [9, 10], [10, 11], [11, 12], // Middle
+                    [0, 13], [13, 14], [14, 15], [15, 16], // Ring
+                    [0, 17], [17, 18], [18, 19], [19, 20], // Pinky
+                ];
+
+                this.ctx.beginPath();
+                for (const [start, end] of connections) {
+                    const startPoint = landmarks[start];
+                    const endPoint = landmarks[end];
+                    
+                    this.ctx.moveTo(
+                        startPoint.x * this.canvas.width,
+                        startPoint.y * this.canvas.height
+                    );
+                    this.ctx.lineTo(
+                        endPoint.x * this.canvas.width,
+                        endPoint.y * this.canvas.height
+                    );
+                }
+                this.ctx.stroke();
+            }
+
+            recognizeGesture(landmarks) {
+                const fingers = this.getFingerStates(landmarks);
+                
+                if (fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) {
+                    return 'thumbs_up';
+                } else if (!fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) {
+                    return 'point';
+                } else if (!fingers.thumb && fingers.index && fingers.middle && !fingers.ring && !fingers.pinky) {
+                    return 'peace';
+                } else if (fingers.thumb && fingers.index && fingers.middle && fingers.ring && fingers.pinky) {
+                    return 'open_palm';
+                } else if (!fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) {
+                    return 'fist';
+                } else if (this.isPinchGesture(landmarks)) {
+                    return 'pinch';
+                }
+                
+                return 'unknown';
+            }
+
+            getFingerStates(landmarks) {
+                return {
+                    thumb: landmarks[4].y < landmarks[3].y,
+                    index: landmarks[8].y < landmarks[6].y,
+                    middle: landmarks[12].y < landmarks[10].y,
+                    ring: landmarks[16].y < landmarks[14].y,
+                    pinky: landmarks[20].y < landmarks[18].y
+                };
+            }
+
+            isPinchGesture(landmarks) {
+                const thumbTip = landmarks[4];
+                const indexTip = landmarks[8];
+                const distance = Math.sqrt(
+                    Math.pow(thumbTip.x - indexTip.x, 2) + 
+                    Math.pow(thumbTip.y - indexTip.y, 2)
+                );
+                return distance < 0.05;
+            }
+
+            calculateConfidence(landmarks, gesture) {
+                // Simple confidence calculation based on gesture stability
+                return Math.random() * 0.4 + 0.6; // Mock confidence for demo
+            }
+
+            updateFPS() {
+                const now = Date.now();
+                if (now - this.lastFPSUpdate >= 1000) {
+                    this.currentFPS = this.frameCount;
+                    this.frameCount = 0;
+                    this.lastFPSUpdate = now;
+                    this.updateStatus('fpsCounter', this.currentFPS);
+                }
+            }
+
+            updateStatus(elementId, value, color = '#4CAF50') {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = value;
+                    element.style.color = color;
+                }
+            }
+
+            log(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = {
+                    timestamp,
+                    message,
+                    type
+                };
+                
+                this.gestureLog.push(logEntry);
+                
+                // Keep only last 100 entries
+                if (this.gestureLog.length > 100) {
+                    this.gestureLog.shift();
+                }
+                
+                this.updateLogDisplay();
+            }
+
+            updateLogDisplay() {
+                const logContainer = document.getElementById('gestureLog');
+                logContainer.innerHTML = '';
+                
+                this.gestureLog.slice(-20).forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = `log-entry log-${entry.type}`;
+                    div.textContent = `[${entry.timestamp}] ${entry.message}`;
+                    logContainer.appendChild(div);
+                });
+                
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            clearCanvas() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.log('Canvas cleared', 'info');
+            }
+
+            toggleOverlay() {
+                this.showOverlay = !this.showOverlay;
+                const btn = document.getElementById('toggleOverlayBtn');
+                btn.textContent = this.showOverlay ? 'Hide Overlay' : 'Show Overlay';
+                btn.classList.toggle('active', this.showOverlay);
+                this.log(`Overlay ${this.showOverlay ? 'enabled' : 'disabled'}`, 'info');
+            }
+
+            downloadLog() {
+                const logData = this.gestureLog.map(entry => 
+                    `[${entry.timestamp}] ${entry.type.toUpperCase()}: ${entry.message}`
+                ).join('\n');
+                
+                const blob = new Blob([logData], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `gesture-test-log-${new Date().toISOString().slice(0, 19)}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.log('Log downloaded', 'info');
+            }
+
+            initializeUI() {
+                document.getElementById('startCameraBtn').onclick = async () => {
+                    try {
+                        await this.initializeCamera();
+                        document.getElementById('startCameraBtn').disabled = true;
+                        document.getElementById('stopCameraBtn').disabled = false;
+                    } catch (error) {
+                        alert('Failed to start camera: ' + error.message);
+                    }
+                };
+
+                document.getElementById('stopCameraBtn').onclick = () => {
+                    this.stopCamera();
+                    document.getElementById('startCameraBtn').disabled = false;
+                    document.getElementById('stopCameraBtn').disabled = true;
+                };
+
+                document.getElementById('toggleOverlayBtn').onclick = () => this.toggleOverlay();
+                document.getElementById('clearCanvasBtn').onclick = () => this.clearCanvas();
+                document.getElementById('downloadLogBtn').onclick = () => this.downloadLog();
+
+                // Initialize canvas
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = '16px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Gesture Test Canvas', this.canvas.width / 2, this.canvas.height / 2);
+                this.ctx.fillText('Start camera to begin testing', this.canvas.width / 2, this.canvas.height / 2 + 30);
+            }
+        }
+
+        // Initialize test environment when page loads
+        window.addEventListener('load', () => {
+            window.gestureTest = new GestureTestEnvironment();
+        });
+    </script>
+</body>
+</html>

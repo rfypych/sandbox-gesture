@@ -8,8 +8,6 @@ Join the [Discord server](https://discord.com/invite/ejUc6YPQuS).
 ![Landscape made in Sandboxels](https://raw.githubusercontent.com/R74nCom/sandboxels/main/icons/cover-3840x1240px-text.png)
  
 # Controls
-
-## Mouse & Keyboard
  * Left Click = Draw pixels
  * Right Click = Erase pixels
  * Middle Click = Pick element
@@ -26,23 +24,8 @@ Join the [Discord server](https://discord.com/invite/ejUc6YPQuS).
  * 1234 = Change view
  * F1 = Toggle GUI
  * C or F2 = Capture screenshot
- * G = Toggle gesture control
 
 (Alt/Option can be used in place of Shift)
-
-## Gesture Control 🆕
-Experience Sandboxels with webcam-based hand gesture control!
-
- * **Index finger** = Control cursor position
- * **Pinch gesture** (thumb + index) = Click/place elements
- * **Two-finger pinch** (thumb + middle) = Right-click/erase
- * **Open palm** = Pause/unpause simulation
- * **Closed fist** = Clear element selection
-
-**Setup**: Click the 👋 button or press 'G' to enable. Requires camera permissions.
-**Requirements**: Chrome/Edge browser, webcam, good lighting.
-
-See [GESTURE_CONTROL_README.md](GESTURE_CONTROL_README.md) for detailed setup and troubleshooting.
 
 # Button Info
  * Pause           =  Pause/play the simulation
@@ -52,7 +35,6 @@ See [GESTURE_CONTROL_README.md](GESTURE_CONTROL_README.md) for detailed setup an
  * Reset           =  Clears the entire simulation
  * Replace         =  Overrides pixels when placing
  * E               =  Select any element by name
- * 👋 (Gesture)    =  Toggle webcam gesture control
  * TPS             =  Change how fast the simulation runs
  * Info            =  Open the element info screen
  * Saves           =  Open the Save & Load menu

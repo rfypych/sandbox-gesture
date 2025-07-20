@@ -118,18 +118,6 @@
 		}
 	</script>
 
-	<!-- MediaPipe Hands Library for Gesture Control -->
-	<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-
-	<!-- Gesture Control Modules -->
-	<script src="hand-tracking.js"></script>
-	<script src="gesture-recognition.js"></script>
-	<script src="gesture-ui.js"></script>
-	<script src="gesture-control.js"></script>
-
 	<script>
 		console.log("%c WELCOME TO R74n ","position: absolute; top: 50%; right: 50%; transform: translate(50%,-50%); font-family: Arial; font-size: 3em; font-weight: 700; color: #00ffff; text-shadow: 1px 1px 1px #14c9c9, 1px 2px 1px #14c9c9, 1px 3px 1px #14c9c9, 1px 4px 1px #14c9c9, 1px 5px 1px #14c9c9, 1px 13px 6px rgba(16,16,16,0.4), 1px 22px 10px rgba(16,16,16,0.2), 1px 25px 35px rgba(16,16,16,0.2), 1px 30px 60px rgba(16,16,16,0.4);padding:10px");
 		console.log("Sandboxels is developed by R74n and can be played on the official website: https://sandboxels.R74n.com/");
@@ -19080,84 +19068,6 @@ window.onload = function() {
 	//	 document.getElementById("categoryControls").style.paddingBottom = "11px";
 	// }
 
-	// Initialize gesture control system
-	if (typeof gestureController !== 'undefined') {
-		// Initialize gesture UI first
-		if (typeof gestureUI !== 'undefined') {
-			gestureUI.initialize();
-		}
-
-		gestureController.initialize().then(() => {
-			console.log('Gesture control system ready');
-		}).catch((error) => {
-			console.warn('Gesture control initialization failed:', error);
-		});
-	}
-
-	// Gesture control settings functions
-	function toggleGestureControl(button) {
-		if (typeof gestureController === 'undefined') {
-			alert('Gesture control system not available');
-			return;
-		}
-
-		const isEnabled = button.getAttribute('state') === '1';
-		if (isEnabled) {
-			gestureController.disable();
-			button.setAttribute('state', '0');
-			button.setAttribute('on', 'false');
-		} else {
-			gestureController.enable().then((success) => {
-				if (success) {
-					button.setAttribute('state', '1');
-					button.setAttribute('on', 'true');
-				}
-			});
-		}
-	}
-
-	function updateGestureSensitivity(value) {
-		if (typeof gestureController !== 'undefined') {
-			gestureController.updateSettings({ sensitivity: parseFloat(value) });
-		}
-	}
-
-	function updateGestureSmoothing(value) {
-		if (typeof gestureController !== 'undefined') {
-			gestureController.updateSettings({ smoothing: parseFloat(value) });
-		}
-	}
-
-	function toggleGestureHandSkeleton(button) {
-		if (typeof gestureUI === 'undefined') return;
-
-		const isEnabled = button.getAttribute('state') === '1';
-		if (isEnabled) {
-			gestureUI.hideHandSkeleton();
-			button.setAttribute('state', '0');
-			button.setAttribute('on', 'false');
-		} else {
-			gestureUI.showHandSkeleton();
-			button.setAttribute('state', '1');
-			button.setAttribute('on', 'true');
-		}
-	}
-
-	function toggleGestureIndicators(button) {
-		if (typeof gestureUI === 'undefined') return;
-
-		const isEnabled = button.getAttribute('state') === '1';
-		if (isEnabled) {
-			gestureUI.hideGestureIndicators();
-			button.setAttribute('state', '0');
-			button.setAttribute('on', 'false');
-		} else {
-			gestureUI.showGestureIndicators();
-			button.setAttribute('state', '1');
-			button.setAttribute('on', 'true');
-		}
-	}
-
 	// Loop through runAfterLoadList and run each function
 	for (var i = 0; i < runAfterLoadList.length; i++) {
 		runAfterLoadList[i]();
@@ -19735,7 +19645,7 @@ window.onload = function() {
 			<div id="stats"></div>
 			<div id="controls">
 				<div id="toolControls">
-					<button id="shiftButton" title="Toggle Shift key" class="controlButton" onclick='toggleShift();focusGame();' on="false" style="display:none">↑</button><button id="gestureButton" title="Toggle gesture control (G key)" class="controlButton" onclick='if(typeof gestureController !== "undefined") gestureController.toggle();focusGame();' on="false">👋</button><button id="pauseButton" title="Pause/play the simulation" class="controlButton" onclick='togglePause();focusGame();' on="false">Pause</button><button id="frameButton" title="Pause and play one frame" class="controlButton" onclick='doFrame();focusGame();' on="false">&gt;</button><button id="sizeDownButton" title="Decrease the brush size" class="controlButton" onclick="mouseSize -= shiftDown?mouseSize-1:2;checkMouseSize(true);centerMouse();focusGame();">-</button><button id="sizeUpButton" title="Increase the brush size" class="controlButton" onclick="mouseSize += shiftDown?14:2;checkMouseSize(true);centerMouse();focusGame();">+</button><button id="resetButton" title="Clear the entire scene" class="controlButton" onclick="resetPrompt();">Reset</button><button id="replaceButton" title="Override existing pixels when placing" class="controlButton" onclick='if (mode == "replace") {mode = null;this.setAttribute("on","false");}else {mode = "replace";this.setAttribute("on","true");};focusGame();' on="false">Replace</button><button id="elemSelectButton" title="Select an element by name" class="controlButton" onclick='chooseElementPrompt();'>E</button><button id="tpsButton" title="Change the simulation Ticks Per Second (TPS)" class="controlButton" onclick='tpsPrompt()'>Tps</button><!--<button id="hideButton" title="Stops updating the scene to allow more resources towards simulation" class="controlButton" onclick='if (hiding) {hiding = false;this.setAttribute("on","false");}else {hiding = true;this.setAttribute("on","true");};focusGame();' on="false">Hide</button>--><button id="infoButton" title="Brings up the element info screen" class="controlButton" onclick='if (showingMenu!="info"){closeMenu();showInfo("")}else{closeMenu()};' on="false">Info</button><button id="savesButton" title="Brings up the Save & Load menu" class="controlButton" onclick='if (showingMenu!="saves"){closeMenu();showSaves()}else{closeMenu()};' on="false">Saves</button><button id="modsButton" title="Brings up the Mod Manager" class="controlButton" onclick='if (showingMenu!="mods"){closeMenu();showModManager()}else{closeMenu()};' on="false">Mods</button><button id="settingsButton" title="Brings up the settings screen" class="controlButton" onclick='if (showingMenu!="settings"){closeMenu();showSettings()}else{closeMenu()};' on="false">Settings</button>
+					<button id="shiftButton" title="Toggle Shift key" class="controlButton" onclick='toggleShift();focusGame();' on="false" style="display:none">↑</button><button id="pauseButton" title="Pause/play the simulation" class="controlButton" onclick='togglePause();focusGame();' on="false">Pause</button><button id="frameButton" title="Pause and play one frame" class="controlButton" onclick='doFrame();focusGame();' on="false">&gt;</button><button id="sizeDownButton" title="Decrease the brush size" class="controlButton" onclick="mouseSize -= shiftDown?mouseSize-1:2;checkMouseSize(true);centerMouse();focusGame();">-</button><button id="sizeUpButton" title="Increase the brush size" class="controlButton" onclick="mouseSize += shiftDown?14:2;checkMouseSize(true);centerMouse();focusGame();">+</button><button id="resetButton" title="Clear the entire scene" class="controlButton" onclick="resetPrompt();">Reset</button><button id="replaceButton" title="Override existing pixels when placing" class="controlButton" onclick='if (mode == "replace") {mode = null;this.setAttribute("on","false");}else {mode = "replace";this.setAttribute("on","true");};focusGame();' on="false">Replace</button><button id="elemSelectButton" title="Select an element by name" class="controlButton" onclick='chooseElementPrompt();'>E</button><button id="tpsButton" title="Change the simulation Ticks Per Second (TPS)" class="controlButton" onclick='tpsPrompt()'>Tps</button><!--<button id="hideButton" title="Stops updating the scene to allow more resources towards simulation" class="controlButton" onclick='if (hiding) {hiding = false;this.setAttribute("on","false");}else {hiding = true;this.setAttribute("on","true");};focusGame();' on="false">Hide</button>--><button id="infoButton" title="Brings up the element info screen" class="controlButton" onclick='if (showingMenu!="info"){closeMenu();showInfo("")}else{closeMenu()};' on="false">Info</button><button id="savesButton" title="Brings up the Save & Load menu" class="controlButton" onclick='if (showingMenu!="saves"){closeMenu();showSaves()}else{closeMenu()};' on="false">Saves</button><button id="modsButton" title="Brings up the Mod Manager" class="controlButton" onclick='if (showingMenu!="mods"){closeMenu();showModManager()}else{closeMenu()};' on="false">Mods</button><button id="settingsButton" title="Brings up the settings screen" class="controlButton" onclick='if (showingMenu!="settings"){closeMenu();showSettings()}else{closeMenu()};' on="false">Settings</button>
 				</div>
 				<script>
 					// if it is the 1st of April, add a rainbow-colored button
@@ -20041,22 +19951,6 @@ window.onload = function() {
 						<input type="button" value="Cheerful Mode" id="settingLabel-cheerful" class="toggleInput" onclick="toggleInput(this,'cheerful',false);this.nextElementSibling.nextElementSibling.innerText=langKey('gui.settingsRefresh','Refresh Page')" state="0"><span class="helpMark" title="If you're going through a bad time, enable this to hide these elements from the menu:
 Cancer, Landmine, Grenade, Smoke Grenade">?</span>
 						<a onclick="window.location.reload();" href="#" class="settingsRefresh"></a>
-					</span><br>
-					<h3>Gesture Control</h3>
-					<span setting="gestureEnabled" class="setting-span multisetting" title="Default: OFF">
-						<input type="button" value="Gesture Control" id="settingLabel-gestureEnabled" class="toggleInput" onclick="toggleGestureControl(this)" state="0"><span class="helpMark" title="Enable webcam-based hand gesture control. Requires camera permissions.">?</span>
-					</span>
-					<span setting="gestureSensitivity" class="setting-span multisetting" title="Default: 0.7">
-						<span id="settingLabel-gestureSensitivity">Gesture Sensitivity</span> <input type="range" min="0.1" max="1.0" step="0.1" value="0.7" onchange="updateGestureSensitivity(this.value)" id="gestureSensitivitySlider">
-					</span>
-					<span setting="gestureSmoothing" class="setting-span multisetting" title="Default: 0.3">
-						<span id="settingLabel-gestureSmoothing">Gesture Smoothing</span> <input type="range" min="0.1" max="1.0" step="0.1" value="0.3" onchange="updateGestureSmoothing(this.value)" id="gestureSmoothingSlider">
-					</span>
-					<span setting="gestureShowSkeleton" class="setting-span multisetting" title="Default: OFF">
-						<input type="button" value="Show Hand Skeleton" id="settingLabel-gestureShowSkeleton" class="toggleInput" onclick="toggleGestureHandSkeleton(this)" state="0">
-					</span>
-					<span setting="gestureShowIndicators" class="setting-span multisetting" title="Default: ON">
-						<input type="button" value="Show Gesture Indicators" id="settingLabel-gestureShowIndicators" class="toggleInput" onclick="toggleGestureIndicators(this)" state="1">
 					</span>
 					<span setting="lang" class="setting-span" title="Default: Disabled" style="display:none" id="setting-span-lang">
 						<span id="settingLabel-lang">Language</span>
