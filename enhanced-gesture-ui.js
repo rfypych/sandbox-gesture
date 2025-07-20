@@ -327,14 +327,50 @@ class EnhancedGestureUI {
     setupVisualFeedback() {
         // Override gesture controller's onResults to add visual feedback
         const originalOnResults = this.gestureController.onResults.bind(this.gestureController);
-        
+
         this.gestureController.onResults = (results) => {
-            // Call original processing
-            originalOnResults(results);
-            
-            // Add enhanced visual feedback
-            this.updateVisualFeedback(results);
+            try {
+                // Call original processing
+                originalOnResults(results);
+
+                // Add enhanced visual feedback with error handling
+                this.updateVisualFeedback(results);
+            } catch (error) {
+                console.error('Error in gesture processing:', error);
+                // Reset cursors on error
+                this.hideCursors();
+            }
         };
+
+        // Add periodic cursor position validation
+        setInterval(() => {
+            this.validateCursorPositions();
+        }, 1000);
+    }
+
+    /**
+     * Validate and fix cursor positions
+     */
+    validateCursorPositions() {
+        if (!this.gestureController.isEnabled) return;
+
+        // Check if cursors are stuck outside viewport
+        const viewport = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+
+        if (this.virtualCursor && this.virtualCursor.style.display === 'block') {
+            const cursorX = parseInt(this.virtualCursor.style.left) || 0;
+            const cursorY = parseInt(this.virtualCursor.style.top) || 0;
+
+            // If cursor is way outside viewport, hide it
+            if (cursorX < -100 || cursorX > viewport.width + 100 ||
+                cursorY < -100 || cursorY > viewport.height + 100) {
+                console.warn('Cursor detected outside viewport, hiding');
+                this.hideCursors();
+            }
+        }
     }
 
     /**
@@ -343,7 +379,7 @@ class EnhancedGestureUI {
     updateVisualFeedback(results) {
         const previewVideo = document.getElementById('preview-video');
         const previewOverlay = document.getElementById('preview-overlay');
-        
+
         if (!previewVideo || !previewOverlay) return;
 
         const ctx = previewOverlay.getContext('2d');
@@ -353,27 +389,44 @@ class EnhancedGestureUI {
         previewOverlay.width = previewVideo.videoWidth || 320;
         previewOverlay.height = previewVideo.videoHeight || 240;
 
+        // Reset cursor update flag
+        let cursorUpdated = false;
+
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
             for (let i = 0; i < results.multiHandLandmarks.length; i++) {
                 const landmarks = results.multiHandLandmarks[i];
                 const handedness = results.multiHandedness[i];
-                
+
+                // Validate landmarks
+                if (!landmarks || landmarks.length < 21) {
+                    console.warn('Invalid landmarks detected');
+                    continue;
+                }
+
                 // Draw enhanced hand landmarks
                 this.drawEnhancedHandLandmarks(ctx, landmarks, handedness);
-                
-                // Update cursor position
-                this.updateCursorPosition(landmarks);
-                
+
+                // Update cursor position (only for the first valid hand)
+                if (!cursorUpdated) {
+                    this.updateCursorPosition(landmarks);
+                    cursorUpdated = true;
+                }
+
                 // Check for pinch gesture
                 const pinchData = this.detectPinchGesture(landmarks);
                 this.updatePinchCursor(pinchData);
-                
+
                 // Update gesture info
                 this.updateGestureInfo(landmarks, handedness);
             }
         } else {
             // Hide cursors when no hands detected
             this.hideCursors();
+        }
+
+        // Force cursor update if no valid hands but cursor should be visible
+        if (!cursorUpdated && this.virtualCursor.style.display === 'block') {
+            setTimeout(() => this.hideCursors(), 1000);
         }
     }
 
@@ -450,29 +503,47 @@ class EnhancedGestureUI {
     updateCursorPosition(landmarks) {
         const indexTip = landmarks[8]; // Index finger tip
         const gameCanvas = document.getElementById('game') || document.querySelector('canvas');
-        
-        if (!gameCanvas) return;
+
+        if (!gameCanvas || !indexTip) {
+            this.hideCursors();
+            return;
+        }
 
         const canvasRect = gameCanvas.getBoundingClientRect();
-        
-        // Convert normalized coordinates to screen coordinates
-        const x = canvasRect.left + (indexTip.x * canvasRect.width);
-        const y = canvasRect.top + (indexTip.y * canvasRect.height);
-        
+
+        // Convert normalized coordinates to screen coordinates with bounds checking
+        const normalizedX = Math.max(0, Math.min(1, indexTip.x));
+        const normalizedY = Math.max(0, Math.min(1, indexTip.y));
+
+        const x = canvasRect.left + (normalizedX * canvasRect.width);
+        const y = canvasRect.top + (normalizedY * canvasRect.height);
+
+        // Only update if coordinates are valid
+        if (isNaN(x) || isNaN(y) || x < 0 || y < 0) {
+            return;
+        }
+
         this.cursorPosition = { x, y };
-        
-        // Update virtual cursor position
+
+        // Update virtual cursor position with smooth animation
         this.virtualCursor.style.left = x + 'px';
         this.virtualCursor.style.top = y + 'px';
         this.virtualCursor.style.display = 'block';
-        
+        this.virtualCursor.style.opacity = '1';
+
         // Check if cursor is active (pointing gesture)
-        const gesture = this.gestureController.recognizeGesture(landmarks);
+        const gesture = this.gestureController.classifyHandGesture(landmarks);
         if (gesture === 'point') {
             this.virtualCursor.classList.add('active');
         } else {
             this.virtualCursor.classList.remove('active');
         }
+
+        // Reset cursor hide timer
+        clearTimeout(this.cursorHideTimer);
+        this.cursorHideTimer = setTimeout(() => {
+            this.virtualCursor.style.opacity = '0.5';
+        }, 2000);
     }
 
     /**
@@ -652,8 +723,19 @@ class EnhancedGestureUI {
      * Hide all cursors
      */
     hideCursors() {
-        this.virtualCursor.style.display = 'none';
-        this.pinchCursor.style.display = 'none';
+        if (this.virtualCursor) {
+            this.virtualCursor.style.display = 'none';
+            this.virtualCursor.style.opacity = '0';
+        }
+        if (this.pinchCursor) {
+            this.pinchCursor.style.display = 'none';
+            this.pinchCursor.style.opacity = '0';
+        }
+
+        // Clear any pending timers
+        if (this.cursorHideTimer) {
+            clearTimeout(this.cursorHideTimer);
+        }
     }
 
     /**
