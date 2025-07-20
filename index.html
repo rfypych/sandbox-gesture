@@ -20283,6 +20283,72 @@ if (document.referrer && document.referrer.indexOf("r74n.") === -1) {
 	gtag('config', 'UA-93720349-9');
 </script>
 
+<!-- MediaPipe Dependencies for Gesture Control -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+<!-- Gesture Control System -->
+<script src="gesture-control.js"></script>
+<script src="sandboxels-gesture-integration.js"></script>
+<script src="gesture-ui.js"></script>
+<script src="performance-optimizer.js"></script>
+<script src="cross-platform-compatibility.js"></script>
+<script src="security-privacy.js"></script>
+
+<!-- Initialize Gesture Control -->
+<script>
+window.addEventListener('load', function() {
+	console.log('🎮 Gesture Control for Sandboxels loaded!');
+
+	// Add gesture control button to main UI
+	setTimeout(() => {
+		const controlsContainer = document.querySelector('.controlButtons') ||
+								document.querySelector('#controls') ||
+								document.querySelector('.controls');
+
+		if (controlsContainer) {
+			const gestureBtn = document.createElement('button');
+			gestureBtn.id = 'main-gesture-btn';
+			gestureBtn.className = 'controlButton';
+			gestureBtn.title = 'Gesture Control (Ctrl+Shift+G)';
+			gestureBtn.innerHTML = '🎮';
+			gestureBtn.style.cssText = 'background: #4CAF50; color: white; border: 2px solid #45a049;';
+			gestureBtn.onclick = () => {
+				if (window.gestureUI) {
+					window.gestureUI.togglePanel();
+				} else {
+					alert('Gesture Control is loading... Please wait a moment and try again.');
+				}
+			};
+
+			// Insert after settings button or at the end
+			const settingsBtn = document.getElementById('settingsButton');
+			if (settingsBtn) {
+				settingsBtn.parentNode.insertBefore(gestureBtn, settingsBtn.nextSibling);
+			} else {
+				controlsContainer.appendChild(gestureBtn);
+			}
+
+			console.log('✅ Gesture Control button added to UI');
+		}
+	}, 2000);
+
+	// Add keyboard shortcut
+	document.addEventListener('keydown', (e) => {
+		if (e.ctrlKey && e.shiftKey && e.key === 'G') {
+			e.preventDefault();
+			if (window.gestureUI) {
+				window.gestureUI.togglePanel();
+			}
+		}
+	});
+
+	console.log('✅ Gesture Control initialized! Press Ctrl+Shift+G or click 🎮 button');
+});
+</script>
+
 </body>
 
 </html>

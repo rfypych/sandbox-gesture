@@ -1,13 +1,14 @@
 {
-  "name": "Sandboxels",
+  "name": "Sandboxels with Gesture Control",
   "short_name": "Sandboxels",
   "theme_color": "#000000",
   "background_color": "#000000",
   "display": "standalone",
   "scope": "/",
   "start_url": "https://sandboxels.r74n.com",
-  "description": "A falling sand simulation game",
+  "description": "A falling sand simulation game with gesture control",
   "orientation": "any",
+  "permissions": ["camera"],
   "icons": [
     {
       "src": "icons/android-chrome-192x192.png?v=2",
