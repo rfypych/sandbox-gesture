@@ -252,9 +252,24 @@ class GestureController {
      * Recognize gesture from hand landmarks
      */
     recognizeGesture(landmarks, handedness) {
-        // Implement gesture recognition logic
+        if (!landmarks || landmarks.length < 21) {
+            return {
+                type: 'unknown',
+                confidence: 0,
+                landmarks: landmarks,
+                handedness: handedness ? handedness.label : 'Unknown',
+                position: { x: 0, y: 0 }
+            };
+        }
+
+        // Implement gesture recognition logic with debug
         const gesture = this.classifyHandGesture(landmarks);
-        
+
+        // Debug logging for gesture detection
+        if (typeof window !== 'undefined' && window.gestureDebugger && window.gestureDebugger.isDebugMode) {
+            console.log(`Raw gesture detected: ${gesture}`);
+        }
+
         // Add to history for smoothing
         this.gestureHistory.push(gesture);
         if (this.gestureHistory.length > this.smoothingFrames) {
@@ -263,12 +278,18 @@ class GestureController {
 
         // Get most common gesture in recent history
         const smoothedGesture = this.getMostCommonGesture();
-        
+        const confidence = this.calculateGestureConfidence();
+
+        // Debug logging for final result
+        if (typeof window !== 'undefined' && window.gestureDebugger && window.gestureDebugger.isDebugMode) {
+            console.log(`Final gesture: ${smoothedGesture}, Confidence: ${confidence.toFixed(2)}`);
+        }
+
         return {
             type: smoothedGesture,
-            confidence: this.calculateGestureConfidence(),
+            confidence: confidence,
             landmarks: landmarks,
-            handedness: handedness.label,
+            handedness: handedness ? handedness.label : 'Unknown',
             position: this.getHandPosition(landmarks)
         };
     }
@@ -282,13 +303,24 @@ class GestureController {
         const angles = this.getFingerAngles(landmarks);
         const distances = this.getFingerDistances(landmarks);
 
-        // Enhanced pinch detection (highest priority)
+        // Debug finger states
+        if (typeof window !== 'undefined' && window.gestureDebugger && window.gestureDebugger.isDebugMode) {
+            console.log('Finger states:', fingers);
+        }
+
+        // Simple gesture detection first (lower thresholds for better detection)
+        const simpleGesture = this.detectSimpleGestures(fingers, landmarks);
+        if (simpleGesture !== 'unknown') {
+            return simpleGesture;
+        }
+
+        // Enhanced pinch detection (lower threshold)
         const pinchData = this.getAdvancedPinchData(landmarks);
-        if (pinchData.isPinching && pinchData.confidence > 0.8) {
+        if (pinchData.isPinching && pinchData.confidence > 0.6) {
             return 'pinch';
         }
 
-        // Enhanced gesture classification with multiple criteria
+        // Enhanced gesture classification with multiple criteria (lower thresholds)
         const gestureScores = {
             'thumbs_up': this.calculateThumbsUpScore(fingers, angles, landmarks),
             'point': this.calculatePointScore(fingers, angles, landmarks),
@@ -297,9 +329,14 @@ class GestureController {
             'fist': this.calculateFistScore(fingers, angles, landmarks)
         };
 
-        // Find gesture with highest confidence score
+        // Debug gesture scores
+        if (typeof window !== 'undefined' && window.gestureDebugger && window.gestureDebugger.isDebugMode) {
+            console.log('Gesture scores:', gestureScores);
+        }
+
+        // Find gesture with highest confidence score (lower threshold)
         let bestGesture = 'unknown';
-        let bestScore = 0.6; // Minimum confidence threshold
+        let bestScore = 0.4; // Lowered minimum confidence threshold
 
         for (const [gesture, score] of Object.entries(gestureScores)) {
             if (score > bestScore) {
@@ -309,6 +346,48 @@ class GestureController {
         }
 
         return bestGesture;
+    }
+
+    /**
+     * Detect simple gestures with basic finger counting
+     */
+    detectSimpleGestures(fingers, landmarks) {
+        // Count extended fingers
+        const extendedFingers = Object.values(fingers).filter(Boolean).length;
+
+        // Simple gesture patterns
+        if (extendedFingers === 0) {
+            return 'fist';
+        } else if (extendedFingers === 5) {
+            return 'open_palm';
+        } else if (extendedFingers === 1) {
+            if (fingers.thumb) return 'thumbs_up';
+            if (fingers.index) return 'point';
+        } else if (extendedFingers === 2) {
+            if (fingers.index && fingers.middle && !fingers.thumb && !fingers.ring && !fingers.pinky) {
+                return 'peace';
+            }
+        }
+
+        // Check for pinch with simple distance
+        if (this.isSimplePinch(landmarks)) {
+            return 'pinch';
+        }
+
+        return 'unknown';
+    }
+
+    /**
+     * Simple pinch detection
+     */
+    isSimplePinch(landmarks) {
+        const thumbTip = landmarks[4];
+        const indexTip = landmarks[8];
+        const distance = Math.sqrt(
+            Math.pow(thumbTip.x - indexTip.x, 2) +
+            Math.pow(thumbTip.y - indexTip.y, 2)
+        );
+        return distance < 0.06; // Increased threshold for easier detection
     }
 
     /**
@@ -456,13 +535,34 @@ class GestureController {
      * Get finger extension states with improved accuracy
      */
     getFingerStates(landmarks) {
-        return {
+        // Use both advanced and simple detection methods
+        const advancedStates = {
             thumb: this.isThumbExtended(landmarks),
             index: this.isFingerExtended(landmarks, [5, 6, 7, 8]),
             middle: this.isFingerExtended(landmarks, [9, 10, 11, 12]),
             ring: this.isFingerExtended(landmarks, [13, 14, 15, 16]),
             pinky: this.isFingerExtended(landmarks, [17, 18, 19, 20])
         };
+
+        // Fallback to simple Y-coordinate comparison if advanced method fails
+        const simpleStates = {
+            thumb: landmarks[4].y < landmarks[3].y,
+            index: landmarks[8].y < landmarks[6].y,
+            middle: landmarks[12].y < landmarks[10].y,
+            ring: landmarks[16].y < landmarks[14].y,
+            pinky: landmarks[20].y < landmarks[18].y
+        };
+
+        // Use advanced states, but fallback to simple if all fingers appear folded
+        const advancedCount = Object.values(advancedStates).filter(Boolean).length;
+        const simpleCount = Object.values(simpleStates).filter(Boolean).length;
+
+        // If advanced detection shows no fingers extended but simple shows some, use simple
+        if (advancedCount === 0 && simpleCount > 0) {
+            return simpleStates;
+        }
+
+        return advancedStates;
     }
 
     /**
@@ -768,10 +868,17 @@ class GestureController {
      */
     calculateGestureConfidence() {
         if (this.gestureHistory.length === 0) return 0;
-        
+
         const mostCommon = this.getMostCommonGesture();
         const count = this.gestureHistory.filter(g => g === mostCommon).length;
-        return count / this.gestureHistory.length;
+        const confidence = count / this.gestureHistory.length;
+
+        // Boost confidence for simple gestures that are clearly detected
+        if (mostCommon !== 'unknown' && confidence > 0.3) {
+            return Math.min(1.0, confidence + 0.2);
+        }
+
+        return confidence;
     }
 
     /**
