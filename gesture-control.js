@@ -72,8 +72,10 @@ class GestureController {
             this.hands.setOptions({
                 maxNumHands: 2,
                 modelComplexity: 1,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
+                minDetectionConfidence: 0.8,
+                minTrackingConfidence: 0.8,
+                staticImageMode: false,
+                selfieMode: true
             });
 
             this.hands.onResults(this.onResults.bind(this));
@@ -272,41 +274,448 @@ class GestureController {
     }
 
     /**
-     * Classify hand gesture based on landmarks
+     * Classify hand gesture based on landmarks with improved accuracy
      */
     classifyHandGesture(landmarks) {
-        // Get finger states (extended or folded)
+        // Get finger states with improved detection
         const fingers = this.getFingerStates(landmarks);
-        
-        // Gesture classification logic
-        if (fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) {
-            return 'thumbs_up';
-        } else if (!fingers.thumb && fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) {
-            return 'point';
-        } else if (!fingers.thumb && fingers.index && fingers.middle && !fingers.ring && !fingers.pinky) {
-            return 'peace';
-        } else if (fingers.thumb && fingers.index && fingers.middle && fingers.ring && fingers.pinky) {
-            return 'open_palm';
-        } else if (!fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) {
-            return 'fist';
-        } else if (this.isPinchGesture(landmarks)) {
+        const angles = this.getFingerAngles(landmarks);
+        const distances = this.getFingerDistances(landmarks);
+
+        // Enhanced pinch detection (highest priority)
+        const pinchData = this.getAdvancedPinchData(landmarks);
+        if (pinchData.isPinching && pinchData.confidence > 0.8) {
             return 'pinch';
         }
-        
-        return 'unknown';
+
+        // Enhanced gesture classification with multiple criteria
+        const gestureScores = {
+            'thumbs_up': this.calculateThumbsUpScore(fingers, angles, landmarks),
+            'point': this.calculatePointScore(fingers, angles, landmarks),
+            'peace': this.calculatePeaceScore(fingers, angles, landmarks),
+            'open_palm': this.calculateOpenPalmScore(fingers, angles, landmarks),
+            'fist': this.calculateFistScore(fingers, angles, landmarks)
+        };
+
+        // Find gesture with highest confidence score
+        let bestGesture = 'unknown';
+        let bestScore = 0.6; // Minimum confidence threshold
+
+        for (const [gesture, score] of Object.entries(gestureScores)) {
+            if (score > bestScore) {
+                bestGesture = gesture;
+                bestScore = score;
+            }
+        }
+
+        return bestGesture;
     }
 
     /**
-     * Get finger extension states
+     * Calculate thumbs up gesture score
+     */
+    calculateThumbsUpScore(fingers, angles, landmarks) {
+        let score = 0;
+
+        // Thumb must be extended upward
+        if (fingers.thumb && landmarks[4].y < landmarks[3].y) score += 0.3;
+
+        // Other fingers should be folded
+        if (!fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) score += 0.4;
+
+        // Check thumb angle (should point upward)
+        const thumbAngle = this.calculateThumbAngle(landmarks);
+        if (thumbAngle > -45 && thumbAngle < 45) score += 0.3;
+
+        return score;
+    }
+
+    /**
+     * Calculate pointing gesture score
+     */
+    calculatePointScore(fingers, angles, landmarks) {
+        let score = 0;
+
+        // Index finger must be extended
+        if (fingers.index) score += 0.3;
+
+        // Other fingers should be folded (except thumb can be either)
+        if (!fingers.middle && !fingers.ring && !fingers.pinky) score += 0.3;
+
+        // Index finger should be straight
+        const indexStraightness = this.calculateFingerStraightness(landmarks, [5, 6, 7, 8]);
+        score += indexStraightness * 0.2;
+
+        // Hand orientation should be forward-pointing
+        const handOrientation = this.getHandOrientation(landmarks);
+        if (handOrientation.isPointingForward) score += 0.2;
+
+        return score;
+    }
+
+    /**
+     * Calculate peace sign score
+     */
+    calculatePeaceScore(fingers, angles, landmarks) {
+        let score = 0;
+
+        // Index and middle fingers must be extended
+        if (fingers.index && fingers.middle) score += 0.4;
+
+        // Ring and pinky should be folded
+        if (!fingers.ring && !fingers.pinky) score += 0.3;
+
+        // Check V-shape angle between index and middle
+        const vAngle = this.calculateVAngle(landmarks);
+        if (vAngle > 20 && vAngle < 60) score += 0.3;
+
+        return score;
+    }
+
+    /**
+     * Calculate open palm score
+     */
+    calculateOpenPalmScore(fingers, angles, landmarks) {
+        let score = 0;
+
+        // All fingers should be extended
+        const extendedCount = Object.values(fingers).filter(Boolean).length;
+        score += (extendedCount / 5) * 0.5;
+
+        // Fingers should be spread apart
+        const spreadScore = this.calculateFingerSpread(landmarks);
+        score += spreadScore * 0.3;
+
+        // Palm should be facing forward
+        const palmDirection = this.getPalmDirection(landmarks);
+        if (palmDirection.isFacingForward) score += 0.2;
+
+        return score;
+    }
+
+    /**
+     * Calculate fist score
+     */
+    calculateFistScore(fingers, angles, landmarks) {
+        let score = 0;
+
+        // All fingers should be folded
+        const foldedCount = Object.values(fingers).filter(f => !f).length;
+        score += (foldedCount / 5) * 0.6;
+
+        // Hand should be compact
+        const compactness = this.calculateHandCompactness(landmarks);
+        score += compactness * 0.4;
+
+        return score;
+    }
+
+    /**
+     * Get advanced pinch detection data
+     */
+    getAdvancedPinchData(landmarks) {
+        const thumbTip = landmarks[4];
+        const indexTip = landmarks[8];
+        const thumbIP = landmarks[3];
+        const indexPIP = landmarks[6];
+
+        // Calculate tip distance
+        const tipDistance = Math.sqrt(
+            Math.pow(thumbTip.x - indexTip.x, 2) +
+            Math.pow(thumbTip.y - indexTip.y, 2)
+        );
+
+        // Calculate joint distance for context
+        const jointDistance = Math.sqrt(
+            Math.pow(thumbIP.x - indexPIP.x, 2) +
+            Math.pow(thumbIP.y - indexPIP.y, 2)
+        );
+
+        // Pinch ratio (tips closer than joints indicates pinch)
+        const pinchRatio = tipDistance / (jointDistance + 0.001);
+
+        // Check if other fingers are not interfering
+        const middleTip = landmarks[12];
+        const middleDistance = Math.sqrt(
+            Math.pow(thumbTip.x - middleTip.x, 2) +
+            Math.pow(thumbTip.y - middleTip.y, 2)
+        );
+
+        const isPinching = tipDistance < 0.04 && pinchRatio < 0.6 && middleDistance > tipDistance * 1.5;
+        const confidence = isPinching ? Math.max(0, 1 - (tipDistance / 0.04)) : 0;
+
+        return {
+            isPinching,
+            confidence,
+            distance: tipDistance,
+            ratio: pinchRatio
+        };
+    }
+
+    /**
+     * Get finger extension states with improved accuracy
      */
     getFingerStates(landmarks) {
         return {
-            thumb: landmarks[4].y < landmarks[3].y,
-            index: landmarks[8].y < landmarks[6].y,
-            middle: landmarks[12].y < landmarks[10].y,
-            ring: landmarks[16].y < landmarks[14].y,
-            pinky: landmarks[20].y < landmarks[18].y
+            thumb: this.isThumbExtended(landmarks),
+            index: this.isFingerExtended(landmarks, [5, 6, 7, 8]),
+            middle: this.isFingerExtended(landmarks, [9, 10, 11, 12]),
+            ring: this.isFingerExtended(landmarks, [13, 14, 15, 16]),
+            pinky: this.isFingerExtended(landmarks, [17, 18, 19, 20])
         };
+    }
+
+    /**
+     * Check if thumb is extended (special case due to thumb anatomy)
+     */
+    isThumbExtended(landmarks) {
+        const thumbTip = landmarks[4];
+        const thumbIP = landmarks[3];
+        const thumbMCP = landmarks[2];
+        const wrist = landmarks[0];
+
+        // Calculate thumb extension based on distance from palm
+        const palmCenter = this.getPalmCenter(landmarks);
+        const thumbDistance = Math.sqrt(
+            Math.pow(thumbTip.x - palmCenter.x, 2) +
+            Math.pow(thumbTip.y - palmCenter.y, 2)
+        );
+
+        // Compare with folded position
+        const foldedDistance = Math.sqrt(
+            Math.pow(thumbMCP.x - palmCenter.x, 2) +
+            Math.pow(thumbMCP.y - palmCenter.y, 2)
+        );
+
+        return thumbDistance > foldedDistance * 1.3;
+    }
+
+    /**
+     * Check if finger is extended based on joint positions
+     */
+    isFingerExtended(landmarks, jointIndices) {
+        const [mcp, pip, dip, tip] = jointIndices.map(i => landmarks[i]);
+
+        // Calculate distances between consecutive joints
+        const mcpToPip = this.calculateDistance(mcp, pip);
+        const pipToDip = this.calculateDistance(pip, dip);
+        const dipToTip = this.calculateDistance(dip, tip);
+
+        // Calculate total finger length
+        const totalLength = mcpToPip + pipToDip + dipToTip;
+
+        // Calculate straight-line distance from MCP to tip
+        const straightDistance = this.calculateDistance(mcp, tip);
+
+        // Finger is extended if straight distance is close to total length
+        const extensionRatio = straightDistance / totalLength;
+        return extensionRatio > 0.8;
+    }
+
+    /**
+     * Calculate distance between two points
+     */
+    calculateDistance(point1, point2) {
+        return Math.sqrt(
+            Math.pow(point1.x - point2.x, 2) +
+            Math.pow(point1.y - point2.y, 2)
+        );
+    }
+
+    /**
+     * Get palm center point
+     */
+    getPalmCenter(landmarks) {
+        const wrist = landmarks[0];
+        const indexMCP = landmarks[5];
+        const pinkyMCP = landmarks[17];
+
+        return {
+            x: (wrist.x + indexMCP.x + pinkyMCP.x) / 3,
+            y: (wrist.y + indexMCP.y + pinkyMCP.y) / 3
+        };
+    }
+
+    /**
+     * Calculate thumb angle relative to hand
+     */
+    calculateThumbAngle(landmarks) {
+        const thumbTip = landmarks[4];
+        const thumbMCP = landmarks[2];
+        const wrist = landmarks[0];
+
+        // Vector from wrist to thumb MCP
+        const baseVector = {
+            x: thumbMCP.x - wrist.x,
+            y: thumbMCP.y - wrist.y
+        };
+
+        // Vector from thumb MCP to tip
+        const thumbVector = {
+            x: thumbTip.x - thumbMCP.x,
+            y: thumbTip.y - thumbMCP.y
+        };
+
+        // Calculate angle between vectors
+        const dot = baseVector.x * thumbVector.x + baseVector.y * thumbVector.y;
+        const mag1 = Math.sqrt(baseVector.x * baseVector.x + baseVector.y * baseVector.y);
+        const mag2 = Math.sqrt(thumbVector.x * thumbVector.x + thumbVector.y * thumbVector.y);
+
+        const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
+        return angle;
+    }
+
+    /**
+     * Calculate finger straightness (0 = bent, 1 = straight)
+     */
+    calculateFingerStraightness(landmarks, jointIndices) {
+        const [mcp, pip, dip, tip] = jointIndices.map(i => landmarks[i]);
+
+        // Calculate total joint distance
+        const totalDistance = this.calculateDistance(mcp, pip) +
+                             this.calculateDistance(pip, dip) +
+                             this.calculateDistance(dip, tip);
+
+        // Calculate straight-line distance
+        const straightDistance = this.calculateDistance(mcp, tip);
+
+        // Return straightness ratio
+        return straightDistance / totalDistance;
+    }
+
+    /**
+     * Get hand orientation information
+     */
+    getHandOrientation(landmarks) {
+        const wrist = landmarks[0];
+        const middleMCP = landmarks[9];
+        const indexTip = landmarks[8];
+
+        // Calculate hand direction vector
+        const handVector = {
+            x: middleMCP.x - wrist.x,
+            y: middleMCP.y - wrist.y
+        };
+
+        // Calculate pointing direction
+        const pointVector = {
+            x: indexTip.x - landmarks[5].x,
+            y: indexTip.y - landmarks[5].y
+        };
+
+        // Determine if pointing forward (away from wrist)
+        const dot = handVector.x * pointVector.x + handVector.y * pointVector.y;
+        const isPointingForward = dot > 0;
+
+        return {
+            isPointingForward,
+            handAngle: Math.atan2(handVector.y, handVector.x) * (180 / Math.PI)
+        };
+    }
+
+    /**
+     * Calculate V-angle between index and middle fingers
+     */
+    calculateVAngle(landmarks) {
+        const indexTip = landmarks[8];
+        const indexMCP = landmarks[5];
+        const middleTip = landmarks[12];
+        const middleMCP = landmarks[9];
+
+        // Vectors for each finger
+        const indexVector = {
+            x: indexTip.x - indexMCP.x,
+            y: indexTip.y - indexMCP.y
+        };
+
+        const middleVector = {
+            x: middleTip.x - middleMCP.x,
+            y: middleTip.y - middleMCP.y
+        };
+
+        // Calculate angle between vectors
+        const dot = indexVector.x * middleVector.x + indexVector.y * middleVector.y;
+        const mag1 = Math.sqrt(indexVector.x * indexVector.x + indexVector.y * indexVector.y);
+        const mag2 = Math.sqrt(middleVector.x * middleVector.x + middleVector.y * middleVector.y);
+
+        const angle = Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
+        return angle;
+    }
+
+    /**
+     * Calculate finger spread (how far apart fingers are)
+     */
+    calculateFingerSpread(landmarks) {
+        const fingerTips = [landmarks[4], landmarks[8], landmarks[12], landmarks[16], landmarks[20]];
+        let totalSpread = 0;
+        let pairCount = 0;
+
+        // Calculate average distance between adjacent finger tips
+        for (let i = 0; i < fingerTips.length - 1; i++) {
+            const distance = this.calculateDistance(fingerTips[i], fingerTips[i + 1]);
+            totalSpread += distance;
+            pairCount++;
+        }
+
+        const averageSpread = totalSpread / pairCount;
+
+        // Normalize spread (typical spread range is 0.05 to 0.15)
+        return Math.min(1, Math.max(0, (averageSpread - 0.05) / 0.1));
+    }
+
+    /**
+     * Get palm direction information
+     */
+    getPalmDirection(landmarks) {
+        const wrist = landmarks[0];
+        const indexMCP = landmarks[5];
+        const pinkyMCP = landmarks[17];
+
+        // Calculate palm normal vector using cross product
+        const v1 = {
+            x: indexMCP.x - wrist.x,
+            y: indexMCP.y - wrist.y,
+            z: indexMCP.z - wrist.z || 0
+        };
+
+        const v2 = {
+            x: pinkyMCP.x - wrist.x,
+            y: pinkyMCP.y - wrist.y,
+            z: pinkyMCP.z - wrist.z || 0
+        };
+
+        // Cross product to get normal
+        const normal = {
+            x: v1.y * v2.z - v1.z * v2.y,
+            y: v1.z * v2.x - v1.x * v2.z,
+            z: v1.x * v2.y - v1.y * v2.x
+        };
+
+        // Check if palm is facing forward (positive z direction)
+        const isFacingForward = normal.z > 0;
+
+        return {
+            isFacingForward,
+            normal
+        };
+    }
+
+    /**
+     * Calculate hand compactness (for fist detection)
+     */
+    calculateHandCompactness(landmarks) {
+        const palmCenter = this.getPalmCenter(landmarks);
+        const fingerTips = [landmarks[4], landmarks[8], landmarks[12], landmarks[16], landmarks[20]];
+
+        let totalDistance = 0;
+        for (const tip of fingerTips) {
+            totalDistance += this.calculateDistance(palmCenter, tip);
+        }
+
+        const averageDistance = totalDistance / fingerTips.length;
+
+        // Normalize compactness (typical range 0.05 to 0.2)
+        return Math.max(0, 1 - ((averageDistance - 0.05) / 0.15));
     }
 
     /**

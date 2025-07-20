@@ -11,8 +11,8 @@ Revolutionary gesture control system for Sandboxels - control the falling sand s
 
 ### 🎯 Core Gesture Controls
 - **👆 Point**: Draw with current element
-- **✌️ Peace Sign**: Erase pixels  
-- **🤏 Pinch**: Select element from canvas
+- **✌️ Peace Sign**: Erase pixels
+- **🤏 Pinch**: Select element from canvas with visual cursor
 - **✋ Open Palm**: Pause/play simulation
 - **✊ Fist**: Reset canvas
 - **👍 Thumbs Up**: Increase brush size
@@ -20,6 +20,16 @@ Revolutionary gesture control system for Sandboxels - control the falling sand s
 - **👈👉 Swipe**: Change element categories
 
 ### 🚀 Advanced Features
+- **📷 Live Camera Preview** with hand tracking visualization
+- **🎯 Visual Cursors** for precise gesture feedback
+- **🤏 Enhanced Pinch Detection** with strength measurement
+- **⚡ Improved Accuracy** with advanced gesture algorithms
+- **🔧 Auto-Optimization** based on device capabilities
+- **📊 Real-time Performance Monitoring**
+- **🎮 Gesture Stability Indicators**
+- **🌈 Visual Feedback System**
+
+### 🔧 Technical Features
 - **Real-time hand tracking** with MediaPipe
 - **Cross-platform compatibility** (Desktop, Mobile, Tablet)
 - **Adaptive performance optimization**
