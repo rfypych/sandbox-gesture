@@ -50,12 +50,16 @@ export class Game {
   }
 
   public update(deltaTime: number): void {
-    // Update particle system
+    // Get hand tracking data
+    const hands = this.handTracker.getHandData();
+
+    // Update particle system with hand data
+    this.particleSystem.updateHandData(hands);
     this.particleSystem.update(deltaTime);
 
-    // Process hand tracking data
-    if (this.handTracker.isReady()) {
-      this.processHandData();
+    // Process hand gestures for special effects
+    if (this.handTracker.isReady() && hands.length > 0) {
+      this.processHandGestures(hands);
     }
 
     // Update scoring system
@@ -83,21 +87,13 @@ export class Game {
     this.lastInteractionTime = performance.now();
   }
 
-  private processHandData(): void {
-    const hands = this.handTracker.getHandData();
-    
-    // Clear previous forces
-    this.particleSystem.clearAttractors();
-    this.particleSystem.clearRepulsors();
-
-    if (hands.length === 0) return;
-
+  private processHandGestures(hands: HandData[]): void {
     const currentTime = performance.now();
 
     for (const hand of hands) {
       // Determine interaction mode based on hand gesture
       const mode = this.determineInteractionMode(hand);
-      
+
       // Apply different effects based on gesture
       switch (mode) {
         case 'attract':
@@ -155,50 +151,75 @@ export class Game {
   }
 
   private handleAttractMode(hand: HandData): void {
-    // Use palm center as main attractor
-    this.particleSystem.addAttractor(hand.palmCenter.x, hand.palmCenter.y);
+    // Increase energy level for attraction effect
+    const settings = this.particleSystem.getSettings();
+    this.particleSystem.updateSettings({
+      energyLevel: Math.min(2.0, settings.energyLevel + 0.1),
+      animationSpeed: Math.min(2.0, settings.animationSpeed + 0.05)
+    });
 
-    // Spawn particles at palm center for continuous effect
-    this.particleSystem.spawnParticlesAt(hand.palmCenter.x, hand.palmCenter.y, 3);
-
-    // Add weaker attractors at finger tips
-    for (const tip of hand.fingerTips) {
-      this.particleSystem.addAttractor(tip.x, tip.y);
-    }
+    this.addScore(1); // Small continuous score for interaction
   }
 
   private handleRepelMode(hand: HandData): void {
-    // Use palm center as main repulsor
-    this.particleSystem.addRepulsor(hand.palmCenter.x, hand.palmCenter.y);
-    
-    // Add weaker repulsors at finger tips
-    for (const tip of hand.fingerTips) {
-      this.particleSystem.addRepulsor(tip.x, tip.y);
+    // Apply repulsion force to nearby particles
+    const handParticles = this.particleSystem.getHandParticles(0); // First hand
+    const auraParticles = this.particleSystem.getAuraParticles();
+
+    const allParticles = [...handParticles, ...auraParticles];
+
+    for (const particle of allParticles) {
+      if (!particle.isAlive()) continue;
+
+      const distance = particle.distanceTo(hand.palmCenter.x, hand.palmCenter.y);
+      if (distance < 150) {
+        const force = 500 / (distance + 1);
+        const dx = particle.x - hand.palmCenter.x;
+        const dy = particle.y - hand.palmCenter.y;
+        const magnitude = Math.sqrt(dx * dx + dy * dy);
+
+        if (magnitude > 0) {
+          particle.applyForce(
+            (dx / magnitude) * force,
+            (dy / magnitude) * force
+          );
+        }
+      }
     }
   }
 
   private handleSpawnMode(hand: HandData): void {
-    // Spawn particles at pinch point (between thumb and index finger)
-    if (hand.fingerTips.length >= 2) {
-      const thumb = hand.fingerTips[0]; // Thumb tip
-      const index = hand.fingerTips[1]; // Index finger tip
+    // Increase particle density and energy for spawn effect
+    const settings = this.particleSystem.getSettings();
+    this.particleSystem.updateSettings({
+      energyLevel: Math.min(3.0, settings.energyLevel + 0.2),
+      colorIntensity: Math.min(2.0, settings.colorIntensity + 0.1)
+    });
 
-      const spawnPoint = {
-        x: (thumb.x + index.x) / 2,
-        y: (thumb.y + index.y) / 2
-      };
-
-      // Spawn particles directly at pinch point
-      this.particleSystem.spawnParticlesAt(spawnPoint.x, spawnPoint.y, 8);
-
-      // Also create a small attractor at spawn point
-      this.particleSystem.addAttractor(spawnPoint.x, spawnPoint.y);
-    }
+    this.addScore(5); // Points for spawn gesture
   }
 
   private handleExplodeMode(hand: HandData): void {
-    // Create explosion at palm center
-    this.particleSystem.explode(hand.palmCenter.x, hand.palmCenter.y, 1500);
+    // Create explosion effect
+    this.particleSystem.explode(hand.palmCenter.x, hand.palmCenter.y, 2000);
+
+    // Temporary visual enhancement
+    const settings = this.particleSystem.getSettings();
+    this.particleSystem.updateSettings({
+      energyLevel: 3.0,
+      colorIntensity: 2.0,
+      animationSpeed: 2.0
+    });
+
+    // Reset settings after a short time
+    setTimeout(() => {
+      this.particleSystem.updateSettings({
+        energyLevel: 1.0,
+        colorIntensity: 1.0,
+        animationSpeed: 1.0
+      });
+    }, 1000);
+
     this.addScore(50); // Bonus points for explosion
   }
 

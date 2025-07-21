@@ -32,6 +32,8 @@ class App {
     const instructions = document.getElementById('instructions');
     const controls = document.getElementById('controls');
     const helpBtn = document.getElementById('helpBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settings = document.getElementById('settings');
 
     // Start button handler
     startBtn?.addEventListener('click', () => {
@@ -42,6 +44,17 @@ class App {
     // Help button handler
     helpBtn?.addEventListener('click', () => {
       instructions?.classList.toggle('hidden');
+    });
+
+    // Settings button handler
+    settingsBtn?.addEventListener('click', () => {
+      settings?.style.setProperty('display', 'block');
+    });
+
+    // Close settings handler
+    const closeSettings = document.getElementById('closeSettings');
+    closeSettings?.addEventListener('click', () => {
+      settings?.style.setProperty('display', 'none');
     });
 
     // Control buttons
@@ -65,6 +78,122 @@ class App {
         }
       });
     });
+
+    // Setup settings controls
+    this.setupSettingsControls();
+  }
+
+  private setupSettingsControls(): void {
+    // Particle count slider
+    const particleCount = document.getElementById('particleCount') as HTMLInputElement;
+    const particleCountValue = document.getElementById('particleCountValue');
+
+    particleCount?.addEventListener('input', () => {
+      const value = parseInt(particleCount.value);
+      if (particleCountValue) particleCountValue.textContent = value.toString();
+      if (this.particleSystem) {
+        this.particleSystem.updateSettings({ particleCount: value });
+      }
+    });
+
+    // Energy level slider
+    const energyLevel = document.getElementById('energyLevel') as HTMLInputElement;
+    const energyLevelValue = document.getElementById('energyLevelValue');
+
+    energyLevel?.addEventListener('input', () => {
+      const value = parseFloat(energyLevel.value);
+      if (energyLevelValue) energyLevelValue.textContent = value.toFixed(1);
+      if (this.particleSystem) {
+        this.particleSystem.updateSettings({ energyLevel: value });
+      }
+    });
+
+    // Color intensity slider
+    const colorIntensity = document.getElementById('colorIntensity') as HTMLInputElement;
+    const colorIntensityValue = document.getElementById('colorIntensityValue');
+
+    colorIntensity?.addEventListener('input', () => {
+      const value = parseFloat(colorIntensity.value);
+      if (colorIntensityValue) colorIntensityValue.textContent = value.toFixed(1);
+      if (this.particleSystem) {
+        this.particleSystem.updateSettings({ colorIntensity: value });
+      }
+    });
+
+    // Animation speed slider
+    const animationSpeed = document.getElementById('animationSpeed') as HTMLInputElement;
+    const animationSpeedValue = document.getElementById('animationSpeedValue');
+
+    animationSpeed?.addEventListener('input', () => {
+      const value = parseFloat(animationSpeed.value);
+      if (animationSpeedValue) animationSpeedValue.textContent = value.toFixed(1);
+      if (this.particleSystem) {
+        this.particleSystem.updateSettings({ animationSpeed: value });
+      }
+    });
+
+    // Show trails checkbox
+    const showTrails = document.getElementById('showTrails') as HTMLInputElement;
+    showTrails?.addEventListener('change', () => {
+      if (this.particleSystem) {
+        this.particleSystem.updateSettings({ showTrails: showTrails.checked });
+      }
+    });
+
+    // Show connections checkbox
+    const showConnections = document.getElementById('showConnections') as HTMLInputElement;
+    showConnections?.addEventListener('change', () => {
+      if (this.particleSystem) {
+        this.particleSystem.updateSettings({ showConnections: showConnections.checked });
+      }
+    });
+
+    // Reset settings button
+    const resetSettings = document.getElementById('resetSettings');
+    resetSettings?.addEventListener('click', () => {
+      this.resetSettingsToDefault();
+    });
+  }
+
+  private resetSettingsToDefault(): void {
+    // Reset sliders
+    const particleCount = document.getElementById('particleCount') as HTMLInputElement;
+    const energyLevel = document.getElementById('energyLevel') as HTMLInputElement;
+    const colorIntensity = document.getElementById('colorIntensity') as HTMLInputElement;
+    const animationSpeed = document.getElementById('animationSpeed') as HTMLInputElement;
+    const showTrails = document.getElementById('showTrails') as HTMLInputElement;
+    const showConnections = document.getElementById('showConnections') as HTMLInputElement;
+
+    if (particleCount) {
+      particleCount.value = '300';
+      document.getElementById('particleCountValue')!.textContent = '300';
+    }
+    if (energyLevel) {
+      energyLevel.value = '1.0';
+      document.getElementById('energyLevelValue')!.textContent = '1.0';
+    }
+    if (colorIntensity) {
+      colorIntensity.value = '1.0';
+      document.getElementById('colorIntensityValue')!.textContent = '1.0';
+    }
+    if (animationSpeed) {
+      animationSpeed.value = '1.0';
+      document.getElementById('animationSpeedValue')!.textContent = '1.0';
+    }
+    if (showTrails) showTrails.checked = true;
+    if (showConnections) showConnections.checked = true;
+
+    // Update particle system
+    if (this.particleSystem) {
+      this.particleSystem.updateSettings({
+        particleCount: 300,
+        energyLevel: 1.0,
+        colorIntensity: 1.0,
+        animationSpeed: 1.0,
+        showTrails: true,
+        showConnections: true
+      });
+    }
   }
 
   private setupCanvas(): void {
