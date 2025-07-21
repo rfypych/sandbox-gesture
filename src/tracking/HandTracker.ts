@@ -1,5 +1,41 @@
-import { Hands, Results } from '@mediapipe/hands';
-import { Camera } from '@mediapipe/camera_utils';
+// MediaPipe types and CDN loading
+declare global {
+  interface Window {
+    Hands: any;
+    Camera: any;
+  }
+}
+
+// Load MediaPipe from CDN
+async function loadMediaPipeFromCDN(): Promise<boolean> {
+  try {
+    // Load MediaPipe scripts from CDN
+    await Promise.all([
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js')
+    ]);
+
+    // Wait a bit for scripts to initialize
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return !!(window.Hands && window.Camera);
+  } catch (error) {
+    console.warn('Failed to load MediaPipe from CDN:', error);
+    return false;
+  }
+}
+
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve();
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
 
 export interface HandLandmark {
   x: number;
@@ -17,8 +53,8 @@ export interface HandData {
 }
 
 export class HandTracker {
-  private hands: Hands;
-  private camera!: Camera;
+  private hands: any = null;
+  private camera: any = null;
   private video: HTMLVideoElement;
   private handData: HandData[] = [];
   private isInitialized: boolean = false;
@@ -27,17 +63,7 @@ export class HandTracker {
 
   constructor(videoElement: HTMLVideoElement) {
     this.video = videoElement;
-
-    try {
-      this.hands = new Hands({
-        locateFile: (file) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }
-      });
-      this.setupHands();
-    } catch (error) {
-      console.warn('MediaPipe Hands not available, hand tracking disabled:', error);
-    }
+    // MediaPipe will be loaded asynchronously in initialize()
   }
 
   private setupHands(): void {
@@ -55,10 +81,21 @@ export class HandTracker {
 
   public async initialize(): Promise<void> {
     try {
-      if (!this.hands) {
-        console.warn('MediaPipe Hands not available, skipping hand tracking initialization');
+      // Load MediaPipe from CDN
+      const loaded = await loadMediaPipeFromCDN();
+      if (!loaded) {
+        console.warn('MediaPipe not available, skipping hand tracking initialization');
         return;
       }
+
+      // Initialize MediaPipe Hands
+      this.hands = new window.Hands({
+        locateFile: (file: string) => {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }
+      });
+
+      this.setupHands();
 
       // Get camera stream
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -81,7 +118,7 @@ export class HandTracker {
       });
 
       // Initialize camera
-      this.camera = new Camera(this.video, {
+      this.camera = new window.Camera(this.video, {
         onFrame: async () => {
           if (this.hands) {
             await this.hands.send({ image: this.video });

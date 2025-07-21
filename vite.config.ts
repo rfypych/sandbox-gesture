@@ -6,7 +6,12 @@ export default defineConfig({
     port: 3000
   },
   build: {
-    target: 'esnext',
-    minify: 'terser'
+    target: 'es2020',
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
   }
 })
