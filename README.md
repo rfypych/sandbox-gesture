@@ -1,42 +1,108 @@
-# Sandboxels
-A falling sand simulation game with hundreds of elements, heat simulation, chemical reactions, fire, density, electricity, and more.
+# 🎮 Particle Hand Game
 
-Play for free at [Sandboxels.R74n.com](https://sandboxels.r74n.com/).
+Sebuah game web interaktif yang menakjubkan dimana Anda dapat mengontrol partikel menggunakan gerakan tangan melalui webcam! Game ini mendukung desktop dan mobile dengan kontrol touch sebagai fallback.
 
-Join the [Discord server](https://discord.com/invite/ejUc6YPQuS).
+## ✨ Fitur Utama
 
-![Landscape made in Sandboxels](https://raw.githubusercontent.com/R74nCom/sandboxels/main/icons/cover-3840x1240px-text.png)
- 
-# Controls
- * Left Click = Draw pixels
- * Right Click = Erase pixels
- * Middle Click = Pick element
- * Space or P = Pause simulation
- * Shift + Heat/Cool/Shock = Intensify effect
- * Shift + Click = Draw line
- * Scroll or +- or [] = Change cursor size
- * ←→ = Change category
- * E = Select by name
- * I or / = Element info
- * \ = Open settings
- * &gt; = Single step
- * F or F11 = Fullscreen
- * 1234 = Change view
- * F1 = Toggle GUI
- * C or F2 = Capture screenshot
+- **Hand Tracking Real-time**: Menggunakan MediaPipe untuk deteksi gerakan tangan yang akurat
+- **Sistem Partikel Canggih**: Ribuan partikel dengan efek visual yang memukau
+- **Responsive Design**: Berfungsi sempurna di desktop dan mobile
+- **Multiple Interaction Modes**: 4 mode interaksi berbeda dengan gesture tangan
+- **Scoring System**: Sistem poin dan combo untuk gameplay yang engaging
+- **Performance Optimized**: Object pooling dan frame rate optimization
 
-(Alt/Option can be used in place of Shift)
+## 🎯 Cara Bermain
 
-# Button Info
- * Pause           =  Pause/play the simulation
- * Step (&gt;)     =  Run a single frame
- * Minus (-)       =  Decrease the cursor size
- * Plus  (+)       =  Increase the cursor size
- * Reset           =  Clears the entire simulation
- * Replace         =  Overrides pixels when placing
- * E               =  Select any element by name
- * TPS             =  Change how fast the simulation runs
- * Info            =  Open the element info screen
- * Saves           =  Open the Save & Load menu
- * Mods            =  Open the Mod Manager
- * Settings        =  Open the settings menu
+### Gesture Tangan:
+- **✋ Tangan Terbuka**: Menarik partikel ke arah telapak tangan
+- **✊ Kepalan Tangan**: Menolak partikel dari tangan
+- **🤏 Gesture Pinch**: Spawn partikel baru di antara jari
+- **👊 Kepalan Ketat**: Membuat ledakan partikel
+
+### Kontrol Mobile:
+- **Touch & Drag**: Menarik partikel ke arah sentuhan
+- **Control Buttons**: Pilih mode interaksi manual
+
+## 🚀 Instalasi & Menjalankan
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Jalankan Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+3. **Build untuk Production**:
+   ```bash
+   npm run build
+   ```
+
+4. **Preview Build**:
+   ```bash
+   npm run preview
+   ```
+
+## 🛠️ Teknologi yang Digunakan
+
+- **Frontend**: TypeScript, HTML5 Canvas, CSS3
+- **Build Tool**: Vite
+- **Hand Tracking**: MediaPipe Hands
+- **Physics**: Custom particle physics engine
+- **Responsive**: CSS Media Queries
+
+## 📱 Kompatibilitas
+
+- **Desktop**: Chrome, Firefox, Safari, Edge
+- **Mobile**: iOS Safari, Chrome Mobile, Samsung Internet
+- **Webcam**: Diperlukan untuk hand tracking
+- **Touch**: Fallback control untuk mobile
+
+## 🎨 Fitur Visual
+
+- **Particle Trails**: Jejak partikel yang indah
+- **Gradient Backgrounds**: Background animasi yang dinamis
+- **Glow Effects**: Efek cahaya pada partikel
+- **Smooth Animations**: Animasi 60fps yang halus
+- **Responsive UI**: Interface yang adaptif
+
+## 🏆 Sistem Scoring
+
+- **Base Points**: Poin dasar dari interaksi
+- **Combo System**: Multiplier untuk interaksi beruntun
+- **Particle Bonus**: Bonus dari jumlah partikel aktif
+- **Gesture Bonus**: Poin ekstra untuk gesture khusus
+
+## 🔧 Konfigurasi
+
+Game secara otomatis menyesuaikan:
+- Jumlah partikel berdasarkan performa device
+- Frame rate untuk mobile optimization
+- UI scaling untuk berbagai ukuran layar
+
+## 📝 Tips Bermain
+
+1. **Pencahayaan**: Pastikan pencahayaan cukup untuk hand tracking
+2. **Background**: Hindari background yang terlalu ramai
+3. **Jarak**: Posisikan tangan 30-60cm dari kamera
+4. **Gesture**: Lakukan gesture dengan jelas dan perlahan
+
+## 🐛 Troubleshooting
+
+- **Kamera tidak terdeteksi**: Refresh browser dan izinkan akses kamera
+- **Hand tracking lambat**: Coba kurangi pencahayaan atau ganti background
+- **Performance issues**: Game otomatis menyesuaikan kualitas
+
+## 🤝 Kontribusi
+
+Silakan buat issue atau pull request untuk perbaikan dan fitur baru!
+
+## 📄 Lisensi
+
+MIT License - Silakan gunakan untuk proyek pribadi atau komersial.
+
+---
+
+**Selamat bermain dan nikmati pengalaman mengontrol partikel dengan tangan Anda! 🎉**
