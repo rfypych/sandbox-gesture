@@ -22,7 +22,6 @@ export class ParticleSystem {
   private getOptimalParticleCount(): number {
     // Adjust particle count based on device capabilities
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const pixelRatio = window.devicePixelRatio || 1;
     const screenArea = window.innerWidth * window.innerHeight;
 
     if (isMobile) {

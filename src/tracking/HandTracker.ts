@@ -18,7 +18,7 @@ export interface HandData {
 
 export class HandTracker {
   private hands: Hands;
-  private camera: Camera;
+  private camera!: Camera;
   private video: HTMLVideoElement;
   private handData: HandData[] = [];
   private isInitialized: boolean = false;
@@ -27,16 +27,22 @@ export class HandTracker {
 
   constructor(videoElement: HTMLVideoElement) {
     this.video = videoElement;
-    this.hands = new Hands({
-      locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-      }
-    });
-    
-    this.setupHands();
+
+    try {
+      this.hands = new Hands({
+        locateFile: (file) => {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }
+      });
+      this.setupHands();
+    } catch (error) {
+      console.warn('MediaPipe Hands not available, hand tracking disabled:', error);
+    }
   }
 
   private setupHands(): void {
+    if (!this.hands) return;
+
     this.hands.setOptions({
       maxNumHands: 2,
       modelComplexity: 1,
@@ -49,6 +55,11 @@ export class HandTracker {
 
   public async initialize(): Promise<void> {
     try {
+      if (!this.hands) {
+        console.warn('MediaPipe Hands not available, skipping hand tracking initialization');
+        return;
+      }
+
       // Get camera stream
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -59,7 +70,7 @@ export class HandTracker {
       });
 
       this.video.srcObject = stream;
-      
+
       // Wait for video to be ready
       await new Promise<void>((resolve) => {
         this.video.onloadedmetadata = () => {
@@ -72,7 +83,9 @@ export class HandTracker {
       // Initialize camera
       this.camera = new Camera(this.video, {
         onFrame: async () => {
-          await this.hands.send({ image: this.video });
+          if (this.hands) {
+            await this.hands.send({ image: this.video });
+          }
         },
         width: 1280,
         height: 720
@@ -83,7 +96,8 @@ export class HandTracker {
 
     } catch (error) {
       console.error('Failed to initialize hand tracking:', error);
-      throw error;
+      // Don't throw error, just log it so the app can continue without hand tracking
+      console.warn('Continuing without hand tracking...');
     }
   }
 

@@ -4,10 +4,10 @@ import { ParticleSystem } from './particles/ParticleSystem';
 import { InputManager } from './input/InputManager';
 
 class App {
-  private game: Game;
-  private handTracker: HandTracker;
-  private particleSystem: ParticleSystem;
-  private inputManager: InputManager;
+  private game!: Game;
+  private handTracker!: HandTracker;
+  private particleSystem!: ParticleSystem;
+  private inputManager!: InputManager;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private video: HTMLVideoElement;
@@ -100,7 +100,7 @@ class App {
       // Start game loop
       this.isRunning = true;
       this.lastTime = performance.now();
-      this.gameLoop();
+      this.gameLoop(performance.now());
 
     } catch (error) {
       console.error('Failed to initialize app:', error);
