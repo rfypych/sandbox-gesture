@@ -137,11 +137,8 @@ class App {
     // Create stunning background with gradient and effects
     this.renderBackground();
 
-    // Render particles with bloom effect
-    this.ctx.save();
-    this.ctx.globalCompositeOperation = 'screen';
+    // Render particles (particle system handles its own blending)
     this.particleSystem.render(this.ctx);
-    this.ctx.restore();
 
     // Render hand tracking overlay
     this.handTracker.renderDebug(this.ctx);
@@ -151,6 +148,10 @@ class App {
   }
 
   private renderBackground(): void {
+    // Apply fade effect for particle trails (like the original system)
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
     // Create animated gradient background
     const time = performance.now() * 0.001;
     const gradient = this.ctx.createRadialGradient(
@@ -162,12 +163,14 @@ class App {
       Math.max(this.canvas.width, this.canvas.height)
     );
 
-    gradient.addColorStop(0, `rgba(${Math.sin(time * 0.2) * 20 + 10}, ${Math.cos(time * 0.3) * 20 + 10}, ${Math.sin(time * 0.1) * 30 + 20}, 0.8)`);
-    gradient.addColorStop(0.5, 'rgba(5, 5, 15, 0.9)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
+    gradient.addColorStop(0, `rgba(${Math.sin(time * 0.2) * 10 + 5}, ${Math.cos(time * 0.3) * 10 + 5}, ${Math.sin(time * 0.1) * 15 + 10}, 0.3)`);
+    gradient.addColorStop(0.5, 'rgba(2, 2, 8, 0.5)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
 
+    this.ctx.globalCompositeOperation = 'multiply';
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.globalCompositeOperation = 'source-over';
   }
 
   private renderScreenEffects(): void {

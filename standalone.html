@@ -152,17 +152,24 @@
     </div>
 
     <script>
-      // Simplified particle system for standalone demo
+      // Enhanced particle system matching the main game
       class Particle {
         constructor(x, y) {
           this.x = x;
           this.y = y;
-          this.vx = (Math.random() - 0.5) * 100;
-          this.vy = (Math.random() - 0.5) * 100;
-          this.life = 1.0;
-          this.size = Math.random() * 3 + 2;
-          this.hue = Math.random() * 360;
-          this.trail = [];
+          this.speedX = Math.random() * 3 - 1.5;
+          this.speedY = Math.random() * 3 - 1.5;
+          this.size = Math.random() * 8 + 1;
+          this.life = Math.random() * 100 + 50;
+          this.opacity = 1;
+
+          // Palet warna yang cerah dan menarik
+          const colors = [
+            '#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66',
+            '#F08A5D', '#B83B5E', '#6A2C70', '#FF6B6B',
+            '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'
+          ];
+          this.color = colors[Math.floor(Math.random() * colors.length)];
         }
 
         update(dt, attractors) {
@@ -173,69 +180,64 @@
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist > 0 && dist < 300) {
               const force = 2000 / (dist * dist);
-              this.vx += (dx / dist) * force * dt;
-              this.vy += (dy / dist) * force * dt;
+              this.speedX += (dx / dist) * force * dt;
+              this.speedY += (dy / dist) * force * dt;
             }
           }
 
           // Update position
-          this.x += this.vx * dt;
-          this.y += this.vy * dt;
+          this.x += this.speedX;
+          this.y += this.speedY;
 
           // Apply drag
-          this.vx *= 0.98;
-          this.vy *= 0.98;
+          this.speedX *= 0.98;
+          this.speedY *= 0.98;
 
           // Boundary bounce
-          if (this.x < 0 || this.x > window.innerWidth) this.vx *= -0.8;
-          if (this.y < 0 || this.y > window.innerHeight) this.vy *= -0.8;
-          
+          if (this.x < 0 || this.x > window.innerWidth) this.speedX *= -0.8;
+          if (this.y < 0 || this.y > window.innerHeight) this.speedY *= -0.8;
+
           this.x = Math.max(0, Math.min(window.innerWidth, this.x));
           this.y = Math.max(0, Math.min(window.innerHeight, this.y));
 
-          // Update trail
-          this.trail.push({x: this.x, y: this.y});
-          if (this.trail.length > 8) this.trail.shift();
+          // Mengurangi ukuran partikel seiring waktu untuk efek menyusut
+          if (this.size > 0.2) {
+            this.size -= 0.1;
+          }
 
-          // Update life
-          this.life -= dt * 0.3;
-          if (this.life < 0) this.life = 0;
+          // Mengurangi waktu hidup dan opacity
+          this.life -= 1;
+          if (this.life < 50) {
+            this.opacity = this.life / 50;
+          }
+          if (this.opacity < 0) this.opacity = 0;
         }
 
         render(ctx) {
-          if (this.life <= 0) return;
+          if (this.life <= 0 || this.opacity <= 0) return;
 
           ctx.save();
-          
-          // Render trail
-          if (this.trail.length > 1) {
-            ctx.strokeStyle = `hsla(${this.hue}, 80%, 60%, ${this.life * 0.3})`;
-            ctx.lineWidth = this.size * 0.5;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            for (let i = 0; i < this.trail.length - 1; i++) {
-              if (i === 0) {
-                ctx.moveTo(this.trail[i].x, this.trail[i].y);
-              } else {
-                ctx.lineTo(this.trail[i].x, this.trail[i].y);
-              }
-            }
-            ctx.stroke();
-          }
+          ctx.globalAlpha = this.opacity;
 
-          // Render particle with glow
+          // Parse hex color to RGB for gradient
+          const hex = this.color.replace('#', '');
+          const r = parseInt(hex.substr(0, 2), 16);
+          const g = parseInt(hex.substr(2, 2), 16);
+          const b = parseInt(hex.substr(4, 2), 16);
+
+          // Render particle with glow effect
           const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
-          gradient.addColorStop(0, `hsla(${this.hue}, 80%, 60%, ${this.life})`);
-          gradient.addColorStop(0.5, `hsla(${this.hue}, 80%, 60%, ${this.life * 0.5})`);
-          gradient.addColorStop(1, `hsla(${this.hue}, 80%, 60%, 0)`);
+          gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 1)`);
+          gradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, 0.5)`);
+          gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
 
           ctx.fillStyle = gradient;
           ctx.beginPath();
           ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
           ctx.fill();
 
-          // Bright core
-          ctx.fillStyle = `rgba(255, 255, 255, ${this.life * 0.8})`;
+          // Inner bright core
+          ctx.fillStyle = `rgba(255, 255, 255, 0.8)`;
           ctx.beginPath();
           ctx.arc(this.x, this.y, this.size * 0.3, 0, Math.PI * 2);
           ctx.fill();
@@ -246,11 +248,18 @@
         reset(x, y) {
           this.x = x;
           this.y = y;
-          this.vx = (Math.random() - 0.5) * 100;
-          this.vy = (Math.random() - 0.5) * 100;
-          this.life = 1.0;
-          this.hue = Math.random() * 360;
-          this.trail = [];
+          this.speedX = Math.random() * 3 - 1.5;
+          this.speedY = Math.random() * 3 - 1.5;
+          this.size = Math.random() * 8 + 1;
+          this.life = Math.random() * 100 + 50;
+          this.opacity = 1;
+
+          const colors = [
+            '#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66',
+            '#F08A5D', '#B83B5E', '#6A2C70', '#FF6B6B',
+            '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'
+          ];
+          this.color = colors[Math.floor(Math.random() * colors.length)];
         }
       }
 

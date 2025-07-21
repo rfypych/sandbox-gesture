@@ -101,40 +101,18 @@ export class ParticleSystem {
   }
 
   private spawnParticle(): void {
-    // Spawn from edges or attractors
+    // Spawn from attractors if available, otherwise from center
     let x, y;
-    
-    if (this.attractors.length > 0 && Math.random() < 0.7) {
-      // Spawn near attractors
+
+    if (this.attractors.length > 0) {
+      // Spawn from attractors (hand positions)
       const attractor = this.attractors[Math.floor(Math.random() * this.attractors.length)];
-      const angle = Math.random() * Math.PI * 2;
-      const distance = 50 + Math.random() * 100;
-      x = attractor.x + Math.cos(angle) * distance;
-      y = attractor.y + Math.sin(angle) * distance;
+      x = attractor.x;
+      y = attractor.y;
     } else {
-      // Spawn from edges
-      const edge = Math.floor(Math.random() * 4);
-      switch (edge) {
-        case 0: // Top
-          x = Math.random() * this.width;
-          y = -10;
-          break;
-        case 1: // Right
-          x = this.width + 10;
-          y = Math.random() * this.height;
-          break;
-        case 2: // Bottom
-          x = Math.random() * this.width;
-          y = this.height + 10;
-          break;
-        case 3: // Left
-          x = -10;
-          y = Math.random() * this.height;
-          break;
-        default:
-          x = Math.random() * this.width;
-          y = Math.random() * this.height;
-      }
+      // Spawn from center if no attractors
+      x = this.width / 2;
+      y = this.height / 2;
     }
 
     const particle = this.getParticleFromPool();
@@ -144,45 +122,56 @@ export class ParticleSystem {
     }
   }
 
+  public spawnParticlesAt(x: number, y: number, count: number = 5): void {
+    // Spawn multiple particles at specific location (for hand tracking)
+    for (let i = 0; i < count; i++) {
+      const particle = this.getParticleFromPool();
+      if (particle && this.particles.length < this.maxParticles) {
+        particle.reset(x, y);
+        this.particles.push(particle);
+      }
+    }
+  }
+
   private applyForces(particle: Particle): void {
     // Attractor forces
     for (const attractor of this.attractors) {
-      const distance = particle.distanceTo(attractor);
+      const distance = particle.distanceTo(attractor.x, attractor.y);
       if (distance > 0 && distance < 300) {
         const strength = Math.min(5000 / (distance * distance), 2);
-        const dx = attractor.x - particle.position.x;
-        const dy = attractor.y - particle.position.y;
+        const dx = attractor.x - particle.x;
+        const dy = attractor.y - particle.y;
         const magnitude = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (magnitude > 0) {
-          particle.applyForce({
-            x: (dx / magnitude) * strength,
-            y: (dy / magnitude) * strength
-          });
+          particle.applyForce(
+            (dx / magnitude) * strength,
+            (dy / magnitude) * strength
+          );
         }
       }
     }
 
     // Repulsor forces
     for (const repulsor of this.repulsors) {
-      const distance = particle.distanceTo(repulsor);
+      const distance = particle.distanceTo(repulsor.x, repulsor.y);
       if (distance > 0 && distance < 200) {
         const strength = Math.min(3000 / (distance * distance), 3);
-        const dx = particle.position.x - repulsor.x;
-        const dy = particle.position.y - repulsor.y;
+        const dx = particle.x - repulsor.x;
+        const dy = particle.y - repulsor.y;
         const magnitude = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (magnitude > 0) {
-          particle.applyForce({
-            x: (dx / magnitude) * strength,
-            y: (dy / magnitude) * strength
-          });
+          particle.applyForce(
+            (dx / magnitude) * strength,
+            (dy / magnitude) * strength
+          );
         }
       }
     }
 
     // Gravity (subtle downward force)
-    particle.applyForce({ x: 0, y: 20 });
+    particle.applyForce(0, 20);
   }
 
   private applyBoundaryForces(particle: Particle): void {
@@ -190,27 +179,27 @@ export class ParticleSystem {
     const bounceStrength = 100;
 
     // Left boundary
-    if (particle.position.x < margin) {
-      const force = (margin - particle.position.x) / margin;
-      particle.applyForce({ x: force * bounceStrength, y: 0 });
+    if (particle.x < margin) {
+      const force = (margin - particle.x) / margin;
+      particle.applyForce(force * bounceStrength, 0);
     }
 
     // Right boundary
-    if (particle.position.x > this.width - margin) {
-      const force = (particle.position.x - (this.width - margin)) / margin;
-      particle.applyForce({ x: -force * bounceStrength, y: 0 });
+    if (particle.x > this.width - margin) {
+      const force = (particle.x - (this.width - margin)) / margin;
+      particle.applyForce(-force * bounceStrength, 0);
     }
 
     // Top boundary
-    if (particle.position.y < margin) {
-      const force = (margin - particle.position.y) / margin;
-      particle.applyForce({ x: 0, y: force * bounceStrength });
+    if (particle.y < margin) {
+      const force = (margin - particle.y) / margin;
+      particle.applyForce(0, force * bounceStrength);
     }
 
     // Bottom boundary
-    if (particle.position.y > this.height - margin) {
-      const force = (particle.position.y - (this.height - margin)) / margin;
-      particle.applyForce({ x: 0, y: -force * bounceStrength });
+    if (particle.y > this.height - margin) {
+      const force = (particle.y - (this.height - margin)) / margin;
+      particle.applyForce(0, -force * bounceStrength);
     }
   }
 
@@ -220,23 +209,21 @@ export class ParticleSystem {
       for (let j = i + 1; j < this.particles.length; j++) {
         const p1 = this.particles[i];
         const p2 = this.particles[j];
-        const distance = p1.distanceTo(p2.position);
+        const distance = p1.distanceTo(p2.x, p2.y);
 
         if (distance < 30 && distance > 0) {
           // Slight attraction between nearby particles
           const strength = 0.5;
-          const dx = p2.position.x - p1.position.x;
-          const dy = p2.position.y - p1.position.y;
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
           const magnitude = Math.sqrt(dx * dx + dy * dy);
 
           if (magnitude > 0) {
-            const force = {
-              x: (dx / magnitude) * strength,
-              y: (dy / magnitude) * strength
-            };
-            
-            p1.applyForce(force);
-            p2.applyForce({ x: -force.x, y: -force.y });
+            const forceX = (dx / magnitude) * strength;
+            const forceY = (dy / magnitude) * strength;
+
+            p1.applyForce(forceX, forceY);
+            p2.applyForce(-forceX, -forceY);
           }
         }
       }
@@ -244,10 +231,13 @@ export class ParticleSystem {
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
-    // Render all particles
+    // Render all particles with screen blend mode for glow effect
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
     for (const particle of this.particles) {
       particle.render(ctx);
     }
+    ctx.restore();
 
     // Render attractors and repulsors
     this.renderForceFields(ctx);
@@ -325,20 +315,23 @@ export class ParticleSystem {
   public explode(x: number, y: number, strength: number = 1000): void {
     // Create explosion effect
     for (const particle of this.particles) {
-      const distance = particle.distanceTo({ x, y });
+      const distance = particle.distanceTo(x, y);
       if (distance < 200) {
         const force = strength / (distance + 1);
-        const dx = particle.position.x - x;
-        const dy = particle.position.y - y;
+        const dx = particle.x - x;
+        const dy = particle.y - y;
         const magnitude = Math.sqrt(dx * dx + dy * dy);
 
         if (magnitude > 0) {
-          particle.applyForce({
-            x: (dx / magnitude) * force,
-            y: (dy / magnitude) * force
-          });
+          particle.applyForce(
+            (dx / magnitude) * force,
+            (dy / magnitude) * force
+          );
         }
       }
     }
+
+    // Spawn explosion particles
+    this.spawnParticlesAt(x, y, 20);
   }
 }

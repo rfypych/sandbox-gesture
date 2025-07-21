@@ -157,7 +157,10 @@ export class Game {
   private handleAttractMode(hand: HandData): void {
     // Use palm center as main attractor
     this.particleSystem.addAttractor(hand.palmCenter.x, hand.palmCenter.y);
-    
+
+    // Spawn particles at palm center for continuous effect
+    this.particleSystem.spawnParticlesAt(hand.palmCenter.x, hand.palmCenter.y, 3);
+
     // Add weaker attractors at finger tips
     for (const tip of hand.fingerTips) {
       this.particleSystem.addAttractor(tip.x, tip.y);
@@ -179,13 +182,16 @@ export class Game {
     if (hand.fingerTips.length >= 2) {
       const thumb = hand.fingerTips[0]; // Thumb tip
       const index = hand.fingerTips[1]; // Index finger tip
-      
+
       const spawnPoint = {
         x: (thumb.x + index.x) / 2,
         y: (thumb.y + index.y) / 2
       };
-      
-      // Create a small attractor at spawn point to gather particles
+
+      // Spawn particles directly at pinch point
+      this.particleSystem.spawnParticlesAt(spawnPoint.x, spawnPoint.y, 8);
+
+      // Also create a small attractor at spawn point
       this.particleSystem.addAttractor(spawnPoint.x, spawnPoint.y);
     }
   }
