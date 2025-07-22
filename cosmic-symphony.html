@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 Cosmic Symphony - Advanced Hand Universe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+            cursor: none;
+        }
+
+        #cosmicCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(120, 0, 255, 0.1) 0%, rgba(0, 0, 0, 1) 70%),
+                        radial-gradient(circle at 70% 80%, rgba(255, 0, 120, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
+        }
+
+        #videoElement {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 160px;
+            height: 120px;
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            opacity: 0.7;
+            z-index: 100;
+            transform: scaleX(-1);
+        }
+
+        .cosmic-hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ffff;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .cosmic-title {
+            font-size: 20px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff0080, #00ffff, #ffff00, #ff0080);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease-in-out infinite;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .gesture-display {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .gesture-item {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .gesture-active {
+            background: rgba(0, 255, 255, 0.2) !important;
+            border-left-color: #00ffff !important;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            transform: translateX(5px);
+        }
+
+        .cosmic-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .cosmic-btn {
+            padding: 10px 16px;
+            background: linear-gradient(45deg, rgba(255, 0, 128, 0.8), rgba(0, 255, 255, 0.8));
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .cosmic-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        .stats-panel {
+            position: absolute;
+            top: 20px;
+            right: 190px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            font-size: 12px;
+            z-index: 100;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #00ffff;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .particle-count {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        .hand-indicator {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .fps-counter {
+            color: #ffff00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <h2>🌌 Initializing Cosmic Symphony...</h2>
+        <p>Preparing the universe for your hands...</p>
+        <p><small>Please allow camera access</small></p>
+    </div>
+
+    <canvas id="cosmicCanvas"></canvas>
+    <video id="videoElement" autoplay muted playsinline></video>
+
+    <div class="cosmic-hud">
+        <div class="cosmic-title">🌌 COSMIC SYMPHONY</div>
+        <div class="gesture-display">
+            <div id="gestureOpen" class="gesture-item">✋ Open: Galaxy Formation</div>
+            <div id="gestureFist" class="gesture-item">✊ Fist: Black Hole</div>
+            <div id="gesturePinch" class="gesture-item">🤏 Pinch: Star Birth</div>
+            <div id="gesturePoint" class="gesture-item">👉 Point: Comet Stream</div>
+            <div id="gestureMove" class="gesture-item">🌊 Move: Cosmic Waves</div>
+            <div id="gestureTwo" class="gesture-item">✌️ Peace: Nebula Cloud</div>
+        </div>
+    </div>
+
+    <div class="stats-panel">
+        <div>Particles: <span id="particleCount" class="particle-count">0</span></div>
+        <div>Hands: <span id="handCount" class="hand-indicator">0</span></div>
+        <div>FPS: <span id="fpsCounter" class="fps-counter">0</span></div>
+        <div>Gravity: <span id="gravityStatus">ON</span></div>
+        <div>Trails: <span id="trailStatus">ON</span></div>
+    </div>
+
+    <div class="cosmic-controls">
+        <button class="cosmic-btn" onclick="resetUniverse()">🌌 Reset</button>
+        <button class="cosmic-btn" onclick="toggleGravity()">⚡ Gravity</button>
+        <button class="cosmic-btn" onclick="bigBang()">💥 Big Bang</button>
+        <button class="cosmic-btn" onclick="toggleTrails()">✨ Trails</button>
+        <button class="cosmic-btn" onclick="toggleMusic()">🎵 Music</button>
+        <button class="cosmic-btn" onclick="saveUniverse()">💾 Save</button>
+    </div>
+
+    <!-- MediaPipe CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+    <script>
+        // Enhanced Cosmic Universe System
+        const canvas = document.getElementById('cosmicCanvas');
+        const ctx = canvas.getContext('2d');
+        const video = document.getElementById('videoElement');
+        
+        // Universe state
+        let cosmicParticles = [];
+        let currentHands = [];
+        let isGravityEnabled = true;
+        let showTrails = true;
+        let musicEnabled = false;
+        let animationId;
+        
+        // Performance tracking
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 0;
+        
+        // Canvas setup
+        function setupCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        setupCanvas();
+        window.addEventListener('resize', setupCanvas);
+
+        // Enhanced Cosmic Particle with advanced physics
+        class AdvancedCosmicParticle {
+            constructor(x, y, type = 'star', energy = 1) {
+                this.x = x;
+                this.y = y;
+                this.z = Math.random() * 100; // 3D depth
+                this.vx = (Math.random() - 0.5) * 4;
+                this.vy = (Math.random() - 0.5) * 4;
+                this.vz = (Math.random() - 0.5) * 2;
+                
+                this.size = Math.random() * 4 + 2;
+                this.baseSize = this.size;
+                this.life = 1.0;
+                this.maxLife = Math.random() * 300 + 200;
+                this.age = 0;
+                this.energy = energy;
+                this.temperature = Math.random() * 10000 + 1000;
+                
+                this.type = type;
+                this.trail = [];
+                this.maxTrailLength = 30;
+                
+                // Advanced properties
+                this.spin = 0;
+                this.spinSpeed = Math.random() * 0.05 + 0.01;
+                this.magneticField = Math.random() * 2 - 1;
+                this.electricCharge = Math.random() * 2 - 1;
+                this.mass = this.size * 0.1;
+                this.luminosity = Math.random();
+                
+                this.setTypeProperties();
+                this.setSpectralColor();
+            }
+            
+            setTypeProperties() {
+                switch(this.type) {
+                    case 'galaxy':
+                        this.size = Math.random() * 12 + 8;
+                        this.arms = Math.floor(Math.random() * 3) + 2;
+                        this.rotationSpeed = Math.random() * 0.02 + 0.005;
+                        this.coreColor = '#FFFFFF';
+                        break;
+                    case 'blackhole':
+                        this.size = Math.random() * 20 + 15;
+                        this.eventHorizon = this.size * 0.6;
+                        this.accretionDisk = this.size * 3;
+                        this.hawkingRadiation = this.size * 0.1;
+                        break;
+                    case 'pulsar':
+                        this.size = Math.random() * 6 + 4;
+                        this.beamLength = this.size * 10;
+                        this.pulseRate = Math.random() * 0.1 + 0.05;
+                        this.beamAngle = 0;
+                        break;
+                    case 'nebula':
+                        this.size = Math.random() * 25 + 15;
+                        this.gasLayers = Math.floor(Math.random() * 5) + 3;
+                        this.ionization = Math.random();
+                        break;
+                    case 'comet':
+                        this.size = Math.random() * 4 + 2;
+                        this.tailLength = Math.random() * 50 + 30;
+                        this.speed = Math.random() * 8 + 4;
+                        break;
+                    case 'wave':
+                        this.amplitude = Math.random() * 80 + 40;
+                        this.frequency = Math.random() * 0.03 + 0.01;
+                        this.wavelength = Math.random() * 200 + 100;
+                        this.phase = Math.random() * Math.PI * 2;
+                        break;
+                }
+            }
+            
+            setSpectralColor() {
+                // Stellar spectral classification based on temperature
+                if (this.temperature > 30000) {
+                    this.color = '#9BB0FF'; // O-class: Blue
+                } else if (this.temperature > 10000) {
+                    this.color = '#AABFFF'; // B-class: Blue-white
+                } else if (this.temperature > 7500) {
+                    this.color = '#CAD7FF'; // A-class: White
+                } else if (this.temperature > 6000) {
+                    this.color = '#F8F7FF'; // F-class: Yellow-white
+                } else if (this.temperature > 5200) {
+                    this.color = '#FFF4EA'; // G-class: Yellow (Sun-like)
+                } else if (this.temperature > 3700) {
+                    this.color = '#FFD2A1'; // K-class: Orange
+                } else {
+                    this.color = '#FFAD51'; // M-class: Red
+                }
+                
+                // Special colors for specific types
+                if (this.type === 'galaxy') {
+                    this.color = `hsl(${Math.random() * 60 + 200}, 70%, 60%)`;
+                } else if (this.type === 'nebula') {
+                    this.color = `hsl(${Math.random() * 120 + 180}, 80%, 50%)`;
+                } else if (this.type === 'comet') {
+                    this.color = `hsl(${Math.random() * 60 + 180}, 90%, 70%)`;
+                }
+            }
+
+            update() {
+                this.age++;
+                this.life = 1 - (this.age / this.maxLife);
+                this.spin += this.spinSpeed;
+
+                // Advanced physics
+                this.applyQuantumEffects();
+                this.applyRelativisticEffects();
+                this.applyThermodynamics();
+
+                // Trail system
+                if (showTrails) {
+                    this.trail.push({x: this.x, y: this.y, z: this.z, life: 1.0});
+                    if (this.trail.length > this.maxTrailLength) {
+                        this.trail.shift();
+                    }
+                    // Fade trail
+                    this.trail.forEach((point, index) => {
+                        point.life = index / this.trail.length;
+                    });
+                }
+
+                // Type-specific updates
+                this.updateByType();
+
+                // Apply forces
+                if (isGravityEnabled) {
+                    this.vy += 0.02;
+                }
+
+                // Electromagnetic forces
+                this.vx += this.electricCharge * 0.001;
+                this.vy += this.magneticField * 0.001;
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+                this.z += this.vz;
+
+                // 3D to 2D projection
+                const perspective = 200 / (200 + this.z);
+                this.projectedX = this.x * perspective;
+                this.projectedY = this.y * perspective;
+                this.projectedSize = this.size * perspective;
+
+                // Boundary conditions
+                this.handleBoundaries();
+
+                return this.life > 0;
+            }
+
+            applyQuantumEffects() {
+                // Quantum tunneling
+                if (Math.random() < 0.001) {
+                    this.x += (Math.random() - 0.5) * 50;
+                    this.y += (Math.random() - 0.5) * 50;
+                }
+
+                // Uncertainty principle
+                const uncertainty = 0.1;
+                this.vx += (Math.random() - 0.5) * uncertainty;
+                this.vy += (Math.random() - 0.5) * uncertainty;
+            }
+
+            applyRelativisticEffects() {
+                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                const c = 10; // Speed of light (scaled)
+
+                if (speed > c * 0.1) {
+                    // Time dilation
+                    const gamma = 1 / Math.sqrt(1 - (speed * speed) / (c * c));
+                    this.age *= gamma;
+
+                    // Length contraction
+                    this.size *= Math.sqrt(1 - (speed * speed) / (c * c));
+                }
+            }
+
+            applyThermodynamics() {
+                // Stefan-Boltzmann law
+                this.luminosity = this.size * this.size * Math.pow(this.temperature / 5778, 4);
+
+                // Cooling
+                this.temperature *= 0.9999;
+
+                // Size variation with temperature
+                this.size = this.baseSize * (1 + (this.temperature - 5778) / 10000);
+            }
+
+            updateByType() {
+                switch(this.type) {
+                    case 'galaxy':
+                        this.updateGalaxy();
+                        break;
+                    case 'blackhole':
+                        this.updateBlackHole();
+                        break;
+                    case 'pulsar':
+                        this.updatePulsar();
+                        break;
+                    case 'nebula':
+                        this.updateNebula();
+                        break;
+                    case 'comet':
+                        this.updateComet();
+                        break;
+                    case 'wave':
+                        this.updateWave();
+                        break;
+                }
+            }
+
+            updateGalaxy() {
+                this.spin += this.rotationSpeed;
+                // Spiral arm dynamics
+                this.vx *= 0.995;
+                this.vy *= 0.995;
+            }
+
+            updateBlackHole() {
+                // Hawking radiation
+                if (Math.random() < this.hawkingRadiation * 0.001) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radiation = new AdvancedCosmicParticle(
+                        this.x + Math.cos(angle) * this.eventHorizon,
+                        this.y + Math.sin(angle) * this.eventHorizon,
+                        'star',
+                        0.1
+                    );
+                    radiation.vx = Math.cos(angle) * 2;
+                    radiation.vy = Math.sin(angle) * 2;
+                    cosmicParticles.push(radiation);
+                }
+
+                // Gravitational effects
+                this.attractNearbyParticles();
+            }
+
+            updatePulsar() {
+                this.beamAngle += this.pulseRate;
+                // Magnetic field rotation
+                this.magneticField = Math.sin(this.beamAngle) * 2;
+            }
+
+            updateNebula() {
+                // Gas dynamics
+                this.size += Math.sin(this.age * 0.01) * 0.1;
+                this.ionization = Math.sin(this.age * 0.005) * 0.5 + 0.5;
+            }
+
+            updateComet() {
+                // Comet tail physics
+                this.vx *= 0.99;
+                this.vy *= 0.99;
+
+                // Solar wind effects
+                const solarWind = 0.01;
+                this.vx += solarWind * (Math.random() - 0.5);
+                this.vy += solarWind * (Math.random() - 0.5);
+            }
+
+            updateWave() {
+                this.phase += this.frequency;
+                this.y += Math.sin(this.phase) * 0.5;
+            }
+
+            attractNearbyParticles() {
+                cosmicParticles.forEach(particle => {
+                    if (particle === this || particle.type === 'blackhole') return;
+
+                    const dx = this.x - particle.x;
+                    const dy = this.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < this.accretionDisk && distance > this.eventHorizon) {
+                        const force = (this.mass * particle.mass) / (distance * distance) * 0.1;
+                        particle.vx += (dx / distance) * force;
+                        particle.vy += (dy / distance) * force;
+                    } else if (distance < this.eventHorizon) {
+                        particle.life = 0; // Consumed
+                    }
+                });
+            }
+
+            handleBoundaries() {
+                const margin = 100;
+                if (this.x < -margin) this.x = canvas.width + margin;
+                if (this.x > canvas.width + margin) this.x = -margin;
+                if (this.y < -margin) this.y = canvas.height + margin;
+                if (this.y > canvas.height + margin) this.y = -margin;
+            }
+
+            render() {
+                ctx.save();
+                ctx.globalAlpha = this.life * this.luminosity;
+
+                // Render trail
+                this.renderTrail();
+
+                // Render main object
+                switch(this.type) {
+                    case 'galaxy':
+                        this.renderGalaxy();
+                        break;
+                    case 'blackhole':
+                        this.renderBlackHole();
+                        break;
+                    case 'pulsar':
+                        this.renderPulsar();
+                        break;
+                    case 'nebula':
+                        this.renderNebula();
+                        break;
+                    case 'comet':
+                        this.renderComet();
+                        break;
+                    case 'wave':
+                        this.renderWave();
+                        break;
+                    default:
+                        this.renderStar();
+                        break;
+                }
+
+                ctx.restore();
+            }
+
+            renderTrail() {
+                if (!showTrails || this.trail.length < 2) return;
+
+                ctx.strokeStyle = this.color + '40';
+                ctx.lineWidth = this.projectedSize * 0.3;
+                ctx.lineCap = 'round';
+
+                ctx.beginPath();
+                this.trail.forEach((point, index) => {
+                    const alpha = point.life * 0.5;
+                    ctx.globalAlpha = alpha;
+
+                    if (index === 0) {
+                        ctx.moveTo(point.x, point.y);
+                    } else {
+                        ctx.lineTo(point.x, point.y);
+                    }
+                });
+                ctx.stroke();
+
+                ctx.globalAlpha = this.life * this.luminosity;
+            }
+
+            renderGalaxy() {
+                ctx.save();
+                ctx.translate(this.projectedX, this.projectedY);
+                ctx.rotate(this.spin);
+
+                // Spiral arms
+                for (let arm = 0; arm < this.arms; arm++) {
+                    const armAngle = (arm / this.arms) * Math.PI * 2;
+
+                    ctx.strokeStyle = this.color + '80';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+
+                    for (let i = 0; i < 100; i++) {
+                        const t = i / 100;
+                        const angle = armAngle + t * Math.PI * 6;
+                        const radius = t * this.projectedSize * 3;
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius * 0.3;
+
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                }
+
+                // Galaxy core
+                const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.projectedSize);
+                coreGradient.addColorStop(0, this.coreColor);
+                coreGradient.addColorStop(0.5, this.color);
+                coreGradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = coreGradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.projectedSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            renderBlackHole() {
+                // Accretion disk
+                const diskGradient = ctx.createRadialGradient(
+                    this.projectedX, this.projectedY, this.eventHorizon,
+                    this.projectedX, this.projectedY, this.accretionDisk
+                );
+                diskGradient.addColorStop(0, '#FF4500');
+                diskGradient.addColorStop(0.3, '#FF8C00');
+                diskGradient.addColorStop(0.7, '#FFD700');
+                diskGradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = diskGradient;
+                ctx.beginPath();
+                ctx.arc(this.projectedX, this.projectedY, this.accretionDisk, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Event horizon
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.arc(this.projectedX, this.projectedY, this.eventHorizon, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Gravitational lensing ring
+                ctx.strokeStyle = '#FFFFFF60';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(this.projectedX, this.projectedY, this.eventHorizon + 5, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            renderPulsar() {
+                // Pulsar core
+                const coreGradient = ctx.createRadialGradient(
+                    this.projectedX, this.projectedY, 0,
+                    this.projectedX, this.projectedY, this.projectedSize
+                );
+                coreGradient.addColorStop(0, '#FFFFFF');
+                coreGradient.addColorStop(0.5, this.color);
+                coreGradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = coreGradient;
+                ctx.beginPath();
+                ctx.arc(this.projectedX, this.projectedY, this.projectedSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Pulsar beams
+                for (let i = 0; i < 2; i++) {
+                    const beamAngle = this.beamAngle + i * Math.PI;
+                    const beamEndX = this.projectedX + Math.cos(beamAngle) * this.beamLength;
+                    const beamEndY = this.projectedY + Math.sin(beamAngle) * this.beamLength;
+
+                    const beamGradient = ctx.createLinearGradient(
+                        this.projectedX, this.projectedY, beamEndX, beamEndY
+                    );
+                    beamGradient.addColorStop(0, this.color);
+                    beamGradient.addColorStop(0.5, this.color + '80');
+                    beamGradient.addColorStop(1, 'transparent');
+
+                    ctx.strokeStyle = beamGradient;
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+
+                    ctx.beginPath();
+                    ctx.moveTo(this.projectedX, this.projectedY);
+                    ctx.lineTo(beamEndX, beamEndY);
+                    ctx.stroke();
+                }
+            }
+
+            renderNebula() {
+                // Multi-layer gas cloud
+                for (let layer = 0; layer < this.gasLayers; layer++) {
+                    const layerSize = this.projectedSize * (1 + layer * 0.3);
+                    const layerAlpha = (this.gasLayers - layer) / this.gasLayers * 0.6;
+                    const layerOffset = layer * 3;
+
+                    const layerX = this.projectedX + Math.sin(this.spin + layer) * layerOffset;
+                    const layerY = this.projectedY + Math.cos(this.spin + layer) * layerOffset;
+
+                    const nebulaGradient = ctx.createRadialGradient(
+                        layerX, layerY, 0, layerX, layerY, layerSize
+                    );
+
+                    const hue = (layer * 60) % 360;
+                    nebulaGradient.addColorStop(0, `hsla(${hue}, 80%, 60%, ${layerAlpha})`);
+                    nebulaGradient.addColorStop(0.5, `hsla(${hue + 30}, 70%, 50%, ${layerAlpha * 0.5})`);
+                    nebulaGradient.addColorStop(1, 'transparent');
+
+                    ctx.fillStyle = nebulaGradient;
+                    ctx.beginPath();
+                    ctx.arc(layerX, layerY, layerSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            renderComet() {
+                // Comet head
+                const headGradient = ctx.createRadialGradient(
+                    this.projectedX, this.projectedY, 0,
+                    this.projectedX, this.projectedY, this.projectedSize
+                );
+                headGradient.addColorStop(0, '#FFFFFF');
+                headGradient.addColorStop(0.5, this.color);
+                headGradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = headGradient;
+                ctx.beginPath();
+                ctx.arc(this.projectedX, this.projectedY, this.projectedSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Comet tail
+                const tailAngle = Math.atan2(-this.vy, -this.vx);
+                const tailEndX = this.projectedX + Math.cos(tailAngle) * this.tailLength;
+                const tailEndY = this.projectedY + Math.sin(tailAngle) * this.tailLength;
+
+                const tailGradient = ctx.createLinearGradient(
+                    this.projectedX, this.projectedY, tailEndX, tailEndY
+                );
+                tailGradient.addColorStop(0, this.color + 'AA');
+                tailGradient.addColorStop(0.5, this.color + '60');
+                tailGradient.addColorStop(1, 'transparent');
+
+                ctx.strokeStyle = tailGradient;
+                ctx.lineWidth = this.projectedSize;
+                ctx.lineCap = 'round';
+
+                ctx.beginPath();
+                ctx.moveTo(this.projectedX, this.projectedY);
+                ctx.lineTo(tailEndX, tailEndY);
+                ctx.stroke();
+            }
+
+            renderWave() {
+                ctx.strokeStyle = this.color + '80';
+                ctx.lineWidth = this.projectedSize;
+                ctx.lineCap = 'round';
+
+                ctx.beginPath();
+                for (let i = 0; i < this.wavelength; i++) {
+                    const x = this.projectedX + i - this.wavelength / 2;
+                    const y = this.projectedY + Math.sin((i / this.wavelength) * Math.PI * 4 + this.phase) * this.amplitude;
+
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+
+            renderStar() {
+                // Star with corona
+                const coronaGradient = ctx.createRadialGradient(
+                    this.projectedX, this.projectedY, 0,
+                    this.projectedX, this.projectedY, this.projectedSize * 2
+                );
+                coronaGradient.addColorStop(0, '#FFFFFF');
+                coronaGradient.addColorStop(0.3, this.color);
+                coronaGradient.addColorStop(0.7, this.color + '80');
+                coronaGradient.addColorStop(1, 'transparent');
+
+                ctx.fillStyle = coronaGradient;
+                ctx.beginPath();
+                ctx.arc(this.projectedX, this.projectedY, this.projectedSize * 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Star core
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(this.projectedX, this.projectedY, this.projectedSize * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Hand tracking system
+        let hands;
+
+        function initializeHandTracking() {
+            hands = new Hands({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                }
+            });
+
+            hands.setOptions({
+                maxNumHands: 2,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.7,
+                minTrackingConfidence: 0.5
+            });
+
+            hands.onResults(onHandResults);
+
+            const camera = new Camera(video, {
+                onFrame: async () => {
+                    await hands.send({image: video});
+                },
+                width: 640,
+                height: 480
+            });
+
+            camera.start();
+        }
+
+        function onHandResults(results) {
+            currentHands = results.multiHandLandmarks || [];
+            document.getElementById('handCount').textContent = currentHands.length;
+
+            processAdvancedGestures();
+        }
+
+        function processAdvancedGestures() {
+            // Clear gesture indicators
+            document.querySelectorAll('.gesture-item').forEach(el => {
+                el.classList.remove('gesture-active');
+            });
+
+            currentHands.forEach((hand, handIndex) => {
+                const landmarks = hand;
+                const handX = landmarks[9].x * canvas.width;
+                const handY = landmarks[9].y * canvas.height;
+
+                const gesture = detectAdvancedGesture(landmarks);
+
+                switch(gesture) {
+                    case 'open':
+                        document.getElementById('gestureOpen').classList.add('gesture-active');
+                        if (Math.random() < 0.08) createAdvancedGalaxy(handX, handY);
+                        break;
+                    case 'fist':
+                        document.getElementById('gestureFist').classList.add('gesture-active');
+                        if (Math.random() < 0.03) createSuperBlackHole(handX, handY);
+                        break;
+                    case 'pinch':
+                        document.getElementById('gesturePinch').classList.add('gesture-active');
+                        if (Math.random() < 0.15) createPulsar(handX, handY);
+                        break;
+                    case 'point':
+                        document.getElementById('gesturePoint').classList.add('gesture-active');
+                        if (Math.random() < 0.1) createCometStream(handX, handY, landmarks);
+                        break;
+                    case 'peace':
+                        document.getElementById('gestureTwo').classList.add('gesture-active');
+                        if (Math.random() < 0.05) createNebula(handX, handY);
+                        break;
+                }
+
+                // Continuous wave generation from movement
+                if (Math.random() < 0.2) {
+                    document.getElementById('gestureMove').classList.add('gesture-active');
+                    createCosmicWave(handX, handY);
+                }
+            });
+        }
+
+        function detectAdvancedGesture(landmarks) {
+            const fingers = [
+                { tip: landmarks[4], pip: landmarks[3] },   // Thumb
+                { tip: landmarks[8], pip: landmarks[6] },   // Index
+                { tip: landmarks[12], pip: landmarks[10] }, // Middle
+                { tip: landmarks[16], pip: landmarks[14] }, // Ring
+                { tip: landmarks[20], pip: landmarks[18] }  // Pinky
+            ];
+
+            const extended = fingers.map(finger => finger.tip.y < finger.pip.y);
+            const extendedCount = extended.filter(Boolean).length;
+
+            // Advanced gesture detection
+            if (extendedCount >= 4) return 'open';
+            if (extendedCount <= 1) return 'fist';
+            if (extended[1] && !extended[2] && !extended[3] && !extended[4]) return 'point';
+            if (extended[1] && extended[2] && extendedCount === 2) return 'peace';
+
+            // Pinch detection
+            if (extended[0] && extended[1]) {
+                const distance = Math.sqrt(
+                    Math.pow(landmarks[4].x - landmarks[8].x, 2) +
+                    Math.pow(landmarks[4].y - landmarks[8].y, 2)
+                );
+                if (distance < 0.05) return 'pinch';
+            }
+
+            return 'unknown';
+        }
+
+        // Advanced cosmic creation functions
+        function createAdvancedGalaxy(x, y) {
+            const galaxy = new AdvancedCosmicParticle(x, y, 'galaxy', 3);
+            cosmicParticles.push(galaxy);
+
+            // Create spiral structure
+            for (let arm = 0; arm < galaxy.arms; arm++) {
+                for (let i = 0; i < 30; i++) {
+                    const angle = (arm / galaxy.arms) * Math.PI * 2 + (i / 30) * Math.PI * 4;
+                    const radius = (i / 30) * 150;
+                    const starX = x + Math.cos(angle) * radius;
+                    const starY = y + Math.sin(angle) * radius * 0.3;
+
+                    const star = new AdvancedCosmicParticle(starX, starY, 'star', Math.random() * 2 + 1);
+                    star.vx = Math.cos(angle + Math.PI / 2) * (radius / 100);
+                    star.vy = Math.sin(angle + Math.PI / 2) * (radius / 100) * 0.3;
+                    cosmicParticles.push(star);
+                }
+            }
+        }
+
+        function createSuperBlackHole(x, y) {
+            const blackHole = new AdvancedCosmicParticle(x, y, 'blackhole', 5);
+            blackHole.mass = 10;
+            cosmicParticles.push(blackHole);
+        }
+
+        function createPulsar(x, y) {
+            const pulsar = new AdvancedCosmicParticle(x, y, 'pulsar', 4);
+            cosmicParticles.push(pulsar);
+        }
+
+        function createNebula(x, y) {
+            const nebula = new AdvancedCosmicParticle(x, y, 'nebula', 2);
+            cosmicParticles.push(nebula);
+
+            // Add gas particles
+            for (let i = 0; i < 20; i++) {
+                const angle = (i / 20) * Math.PI * 2;
+                const radius = Math.random() * 100 + 50;
+                const gasX = x + Math.cos(angle) * radius;
+                const gasY = y + Math.sin(angle) * radius;
+
+                const gas = new AdvancedCosmicParticle(gasX, gasY, 'star', 0.5);
+                gas.size = Math.random() * 2 + 1;
+                gas.color = `hsl(${Math.random() * 120 + 180}, 70%, 60%)`;
+                cosmicParticles.push(gas);
+            }
+        }
+
+        function createCometStream(x, y, landmarks) {
+            const indexTip = landmarks[8];
+            const targetX = indexTip.x * canvas.width;
+            const targetY = indexTip.y * canvas.height;
+
+            for (let i = 0; i < 5; i++) {
+                const comet = new AdvancedCosmicParticle(x, y, 'comet', 1);
+                const dx = targetX - x;
+                const dy = targetY - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                comet.vx = (dx / distance) * comet.speed + (Math.random() - 0.5) * 2;
+                comet.vy = (dy / distance) * comet.speed + (Math.random() - 0.5) * 2;
+                cosmicParticles.push(comet);
+            }
+        }
+
+        function createCosmicWave(x, y) {
+            const wave = new AdvancedCosmicParticle(x, y, 'wave', 1);
+            cosmicParticles.push(wave);
+        }
+
+        // Animation and control system
+        function animate() {
+            // Performance tracking
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                document.getElementById('fpsCounter').textContent = fps;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+
+            // Clear with cosmic background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Render cosmic background
+            renderCosmicBackground();
+
+            // Update and render particles
+            cosmicParticles = cosmicParticles.filter(particle => {
+                const alive = particle.update();
+                if (alive) particle.render();
+                return alive;
+            });
+
+            // Update particle count
+            document.getElementById('particleCount').textContent = cosmicParticles.length;
+
+            // Render hand tracking
+            renderHandTracking();
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function renderCosmicBackground() {
+            // Distant stars
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            for (let i = 0; i < 200; i++) {
+                const x = (i * 137.5) % canvas.width;
+                const y = (i * 241.3) % canvas.height;
+                const twinkle = Math.sin(i + performance.now() * 0.002) * 0.5 + 1;
+
+                ctx.globalAlpha = twinkle * 0.8;
+                ctx.beginPath();
+                ctx.arc(x, y, 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function renderHandTracking() {
+            if (currentHands.length === 0) return;
+
+            ctx.strokeStyle = '#00FFFF80';
+            ctx.fillStyle = '#00FFFF';
+            ctx.lineWidth = 1;
+
+            currentHands.forEach(hand => {
+                const landmarks = hand;
+
+                // Hand connections
+                const connections = [
+                    [0,1],[1,2],[2,3],[3,4], [0,5],[5,6],[6,7],[7,8],
+                    [0,9],[9,10],[10,11],[11,12], [0,13],[13,14],[14,15],[15,16],
+                    [0,17],[17,18],[18,19],[19,20], [5,9],[9,13],[13,17]
+                ];
+
+                ctx.beginPath();
+                connections.forEach(([start, end]) => {
+                    const startPoint = landmarks[start];
+                    const endPoint = landmarks[end];
+                    ctx.moveTo(startPoint.x * canvas.width, startPoint.y * canvas.height);
+                    ctx.lineTo(endPoint.x * canvas.width, endPoint.y * canvas.height);
+                });
+                ctx.stroke();
+
+                // Landmarks
+                landmarks.forEach((landmark, index) => {
+                    const x = landmark.x * canvas.width;
+                    const y = landmark.y * canvas.height;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, index === 8 || index === 4 ? 4 : 2, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            });
+        }
+
+        // Control functions
+        function resetUniverse() {
+            cosmicParticles = [];
+            console.log('🌌 Universe reset!');
+        }
+
+        function toggleGravity() {
+            isGravityEnabled = !isGravityEnabled;
+            document.getElementById('gravityStatus').textContent = isGravityEnabled ? 'ON' : 'OFF';
+            console.log(`⚡ Gravity ${isGravityEnabled ? 'enabled' : 'disabled'}`);
+        }
+
+        function bigBang() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            for (let i = 0; i < 150; i++) {
+                const angle = (i / 150) * Math.PI * 2;
+                const speed = Math.random() * 15 + 5;
+                const types = ['star', 'galaxy', 'comet', 'pulsar', 'nebula'];
+                const type = types[Math.floor(Math.random() * types.length)];
+
+                const particle = new AdvancedCosmicParticle(centerX, centerY, type, Math.random() * 3 + 1);
+                particle.vx = Math.cos(angle) * speed;
+                particle.vy = Math.sin(angle) * speed;
+                particle.vz = (Math.random() - 0.5) * 10;
+                cosmicParticles.push(particle);
+            }
+
+            console.log('💥 Big Bang triggered!');
+        }
+
+        function toggleTrails() {
+            showTrails = !showTrails;
+            document.getElementById('trailStatus').textContent = showTrails ? 'ON' : 'OFF';
+            console.log(`✨ Trails ${showTrails ? 'enabled' : 'disabled'}`);
+        }
+
+        function toggleMusic() {
+            musicEnabled = !musicEnabled;
+            console.log(`🎵 Music ${musicEnabled ? 'enabled' : 'disabled'}`);
+        }
+
+        function saveUniverse() {
+            const universeData = {
+                particles: cosmicParticles.length,
+                timestamp: new Date().toISOString(),
+                settings: { gravity: isGravityEnabled, trails: showTrails }
+            };
+            console.log('💾 Universe saved:', universeData);
+        }
+
+        // Initialize the cosmic symphony
+        async function init() {
+            try {
+                await initializeHandTracking();
+                document.getElementById('loading').style.display = 'none';
+                animate();
+                console.log('🌌 Cosmic Symphony initialized!');
+                console.log('✋ Use hand gestures to create cosmic phenomena');
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                document.getElementById('loading').innerHTML = `
+                    <h2>❌ Initialization Failed</h2>
+                    <p>Please refresh and allow camera access</p>
+                `;
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
