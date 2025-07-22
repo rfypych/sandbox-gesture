@@ -138,17 +138,20 @@
         <p>🎨 <strong>Multiple Touches:</strong> Create multiple attraction points</p>
         
         <div class="demo-mode">
-          <h3>🌟 Particle Formation System</h3>
-          <p>Particles will form the word "HAND" and respond to your mouse!</p>
-          <p>🖱️ <strong>Move mouse:</strong> Push particles away</p>
-          <p>🎨 <strong>Form button:</strong> Particles return to shape</p>
-          <p>💫 <strong>Disperse button:</strong> Particles scatter randomly</p>
+          <h3>🌌 COSMIC FORMATION SYSTEM</h3>
+          <p>Witness the birth of a cosmic constellation spelling "COSMOS"!</p>
+          <p>🖱️ <strong>Gravitational Lensing:</strong> Mouse bends spacetime around particles</p>
+          <p>🌟 <strong>Stellar Formation:</strong> Particles form into cosmic constellation</p>
+          <p>🌌 <strong>Cosmic Void:</strong> Particles disperse into deep space</p>
+          <p>💥 <strong>Big Bang:</strong> Trigger cosmic explosion and rebirth</p>
+          <p><strong>⚡ Experience real cosmic physics in your browser!</strong></p>
         </div>
 
-        <button id="startBtn" class="control-btn">Start Demo</button>
+        <button id="startBtn" class="control-btn">🚀 Enter Cosmos</button>
         <div style="margin-top: 10px;">
-          <button id="formBtn" class="control-btn">Form</button>
-          <button id="disperseBtn" class="control-btn">Disperse</button>
+          <button id="formBtn" class="control-btn">🌟 Form Constellation</button>
+          <button id="disperseBtn" class="control-btn">🌌 Cosmic Void</button>
+          <button id="bigBangBtn" class="control-btn" style="background: linear-gradient(45deg, #FF0080, #00FFFF); color: white; font-weight: bold;">💥 BIG BANG</button>
         </div>
       </div>
       
@@ -213,7 +216,7 @@
       const canvas = document.getElementById('gameCanvas');
       const ctx = canvas.getContext('2d');
       let particlesArray = [];
-      const textToForm = 'HAND';
+      const textToForm = 'COSMOS';
 
       // Mouse object
       const mouse = {
@@ -329,6 +332,35 @@
 
       document.getElementById('formBtn').addEventListener('click', formShape);
       document.getElementById('disperseBtn').addEventListener('click', disperseShape);
+      document.getElementById('bigBangBtn').addEventListener('click', triggerBigBang);
+
+      // Big Bang function
+      function triggerBigBang() {
+        // Cosmic explosion effect
+        for (let i = 0; i < particlesArray.length; i++) {
+          const particle = particlesArray[i];
+          const explosionAngle = Math.random() * Math.PI * 2;
+          const explosionForce = Math.random() * 20 + 10;
+
+          particle.targetX = particle.x + Math.cos(explosionAngle) * explosionForce * 10;
+          particle.targetY = particle.y + Math.sin(explosionAngle) * explosionForce * 10;
+
+          // Enhance particle properties for explosion
+          particle.size *= 2;
+          particle.energy = 5;
+        }
+
+        // Reset after explosion
+        setTimeout(() => {
+          formShape();
+          for (let i = 0; i < particlesArray.length; i++) {
+            particlesArray[i].size = 2.5;
+            particlesArray[i].energy = 1;
+          }
+        }, 2000);
+
+        console.log('💥 BIG BANG! Cosmic explosion triggered!');
+      }
     </script>
   </body>
 </html>

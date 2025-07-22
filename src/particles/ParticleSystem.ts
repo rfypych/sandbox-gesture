@@ -545,23 +545,25 @@ export class ParticleSystem {
   public render(ctx: CanvasRenderingContext2D): void {
     ctx.save();
 
-    // Apply trail effect (seperti sistem pembentuk benda)
-    ctx.fillStyle = 'rgba(17, 24, 39, 0.25)';
-    ctx.fillRect(0, 0, this.width, this.height);
+    // COSMIC BACKGROUND - Deep space with nebula effects
+    this.renderCosmicBackground(ctx);
 
-    // Render connection particles first (behind everything)
+    // COSMIC CONNECTIONS - Dark matter filaments
     if (this.settings.showConnections) {
-      this.renderConnections(ctx);
+      this.renderCosmicConnections(ctx);
     }
 
-    // Render aura particles with subtle glow
+    // NEBULA LAYER - Aura particles as cosmic gas clouds
+    ctx.globalCompositeOperation = 'screen';
     for (const auraParticle of this.auraParticles) {
       if (auraParticle.isAlive()) {
         auraParticle.render(ctx);
       }
     }
+    ctx.globalCompositeOperation = 'source-over';
 
-    // Render hand particles (main attraction)
+    // STELLAR LAYER - Main hand particles as cosmic objects
+    ctx.globalCompositeOperation = 'lighter';
     for (const handParticles of this.handParticles.values()) {
       for (const particle of handParticles) {
         if (particle.isAlive()) {
@@ -569,8 +571,90 @@ export class ParticleSystem {
         }
       }
     }
+    ctx.globalCompositeOperation = 'source-over';
+
+    // COSMIC PHENOMENA - Additional effects
+    this.renderCosmicPhenomena(ctx);
 
     ctx.restore();
+  }
+
+  private renderCosmicBackground(ctx: CanvasRenderingContext2D): void {
+    // Deep space background with cosmic microwave background radiation
+    const time = performance.now() * 0.0001;
+
+    // Cosmic microwave background
+    const cosmicGradient = ctx.createRadialGradient(
+      this.width / 2 + Math.sin(time * 0.3) * 200,
+      this.height / 2 + Math.cos(time * 0.2) * 150,
+      0,
+      this.width / 2,
+      this.height / 2,
+      Math.max(this.width, this.height)
+    );
+
+    cosmicGradient.addColorStop(0, `rgba(${Math.sin(time * 0.1) * 10 + 5}, ${Math.cos(time * 0.15) * 10 + 5}, ${Math.sin(time * 0.08) * 15 + 10}, 0.8)`);
+    cosmicGradient.addColorStop(0.3, 'rgba(2, 2, 8, 0.9)');
+    cosmicGradient.addColorStop(0.7, 'rgba(0, 0, 3, 0.95)');
+    cosmicGradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
+
+    ctx.fillStyle = cosmicGradient;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // Distant stars
+    this.renderDistantStars(ctx);
+
+    // Cosmic dust
+    this.renderCosmicDust(ctx);
+  }
+
+  private renderDistantStars(ctx: CanvasRenderingContext2D): void {
+    // Render distant background stars
+    const starCount = 100;
+    const time = performance.now() * 0.001;
+
+    for (let i = 0; i < starCount; i++) {
+      const starX = (i * 137.5) % this.width; // Pseudo-random distribution
+      const starY = (i * 241.3) % this.height;
+      const starSize = Math.sin(i + time * 0.5) * 0.5 + 1;
+      const starBrightness = Math.sin(i * 0.1 + time) * 0.3 + 0.7;
+
+      ctx.fillStyle = `rgba(255, 255, 255, ${starBrightness})`;
+      ctx.beginPath();
+      ctx.arc(starX, starY, starSize, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Twinkling effect
+      if (Math.sin(i + time * 2) > 0.8) {
+        ctx.fillStyle = `rgba(255, 255, 255, 0.8)`;
+        ctx.beginPath();
+        ctx.arc(starX, starY, starSize * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  private renderCosmicDust(ctx: CanvasRenderingContext2D): void {
+    // Cosmic dust clouds
+    const dustCount = 50;
+    const time = performance.now() * 0.0005;
+
+    for (let i = 0; i < dustCount; i++) {
+      const dustX = (i * 173.7 + time * 10) % (this.width + 100) - 50;
+      const dustY = (i * 197.3) % this.height;
+      const dustSize = Math.sin(i * 0.3) * 20 + 30;
+      const dustAlpha = Math.sin(i * 0.1 + time) * 0.1 + 0.05;
+
+      const dustGradient = ctx.createRadialGradient(dustX, dustY, 0, dustX, dustY, dustSize);
+      dustGradient.addColorStop(0, `rgba(100, 50, 150, ${dustAlpha})`);
+      dustGradient.addColorStop(0.5, `rgba(50, 25, 100, ${dustAlpha * 0.5})`);
+      dustGradient.addColorStop(1, 'transparent');
+
+      ctx.fillStyle = dustGradient;
+      ctx.beginPath();
+      ctx.arc(dustX, dustY, dustSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   private renderConnections(ctx: CanvasRenderingContext2D): void {
@@ -783,30 +867,205 @@ export class ParticleSystem {
     return this.performanceMode;
   }
 
-  public formHandShape(): void {
-    // Membentuk semua partikel ke bentuk tangan
-    for (const handParticles of this.handParticles.values()) {
-      for (const particle of handParticles) {
-        particle.formShape();
+  private renderCosmicConnections(ctx: CanvasRenderingContext2D): void {
+    // Dark matter filaments connecting cosmic objects
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+
+    for (let handIndex = 0; handIndex < this.currentHands.length; handIndex++) {
+      const handKey = `hand_${handIndex}`;
+      const handParticles = this.handParticles.get(handKey);
+
+      if (!handParticles) continue;
+
+      // Cosmic connections between landmarks
+      const connections = [
+        [0, 1], [1, 2], [2, 3], [3, 4], // Thumb constellation
+        [0, 5], [5, 6], [6, 7], [7, 8], // Index constellation
+        [0, 9], [9, 10], [10, 11], [11, 12], // Middle constellation
+        [0, 13], [13, 14], [14, 15], [15, 16], // Ring constellation
+        [0, 17], [17, 18], [18, 19], [19, 20], // Pinky constellation
+        [5, 9], [9, 13], [13, 17] // Palm connections
+      ];
+
+      for (const [start, end] of connections) {
+        const startParticles = this.getParticlesForLandmark(handParticles, start);
+        const endParticles = this.getParticlesForLandmark(handParticles, end);
+
+        if (startParticles.length > 0 && endParticles.length > 0) {
+          const startParticle = startParticles[0];
+          const endParticle = endParticles[0];
+
+          if (startParticle.isAlive() && endParticle.isAlive()) {
+            // Dark matter filament
+            const connectionGradient = ctx.createLinearGradient(
+              startParticle.x, startParticle.y,
+              endParticle.x, endParticle.y
+            );
+            connectionGradient.addColorStop(0, startParticle.color + '60');
+            connectionGradient.addColorStop(0.5, '#000000' + '40');
+            connectionGradient.addColorStop(1, endParticle.color + '60');
+
+            ctx.strokeStyle = connectionGradient;
+            ctx.lineWidth = 2 * this.settings.colorIntensity;
+            ctx.lineCap = 'round';
+            ctx.globalAlpha = 0.4 * this.settings.colorIntensity;
+
+            ctx.beginPath();
+            ctx.moveTo(startParticle.x, startParticle.y);
+            ctx.lineTo(endParticle.x, endParticle.y);
+            ctx.stroke();
+          }
+        }
       }
     }
 
-    for (const particle of this.auraParticles) {
-      particle.formShape();
+    ctx.restore();
+  }
+
+  private renderCosmicPhenomena(ctx: CanvasRenderingContext2D): void {
+    // Additional cosmic phenomena
+    const time = performance.now() * 0.001;
+
+    // Cosmic rays
+    this.renderCosmicRays(ctx, time);
+
+    // Gravitational lensing effects
+    this.renderGravitationalLensing(ctx, time);
+
+    // Quantum foam
+    this.renderQuantumFoam(ctx, time);
+  }
+
+  private renderCosmicRays(ctx: CanvasRenderingContext2D, time: number): void {
+    // High-energy cosmic rays
+    const rayCount = 5;
+
+    for (let i = 0; i < rayCount; i++) {
+      const rayAngle = (i / rayCount) * Math.PI * 2 + time * 0.1;
+      const rayLength = Math.max(this.width, this.height);
+      const rayStartX = this.width / 2 + Math.cos(rayAngle) * rayLength;
+      const rayStartY = this.height / 2 + Math.sin(rayAngle) * rayLength;
+      const rayEndX = this.width / 2 - Math.cos(rayAngle) * rayLength;
+      const rayEndY = this.height / 2 - Math.sin(rayAngle) * rayLength;
+
+      const rayGradient = ctx.createLinearGradient(rayStartX, rayStartY, rayEndX, rayEndY);
+      rayGradient.addColorStop(0, 'transparent');
+      rayGradient.addColorStop(0.4, '#FFFFFF' + '20');
+      rayGradient.addColorStop(0.6, '#00FFFF' + '40');
+      rayGradient.addColorStop(1, 'transparent');
+
+      ctx.strokeStyle = rayGradient;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = Math.sin(time + i) * 0.3 + 0.2;
+
+      ctx.beginPath();
+      ctx.moveTo(rayStartX, rayStartY);
+      ctx.lineTo(rayEndX, rayEndY);
+      ctx.stroke();
     }
   }
 
-  public disperseParticles(): void {
-    // Menyebarkan semua partikel secara acak
+  private renderGravitationalLensing(ctx: CanvasRenderingContext2D, time: number): void {
+    // Gravitational lensing distortion effects
     for (const handParticles of this.handParticles.values()) {
       for (const particle of handParticles) {
-        particle.disperseShape();
+        if (particle.isAlive() && particle.getRole() === ParticleRole.PALM_CENTER) {
+          // Lensing ring around massive objects
+          const lensRadius = particle.size * 4;
+
+          ctx.strokeStyle = '#FFFFFF' + '30';
+          ctx.lineWidth = 2;
+          ctx.globalAlpha = 0.3;
+
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, lensRadius, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Einstein ring
+          ctx.strokeStyle = particle.color + '40';
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 0.5;
+
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, lensRadius * 1.5, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  private renderQuantumFoam(ctx: CanvasRenderingContext2D, time: number): void {
+    // Quantum foam at the smallest scales
+    const foamCount = 20;
+
+    for (let i = 0; i < foamCount; i++) {
+      const foamX = (i * 127.3 + time * 50) % this.width;
+      const foamY = (i * 193.7 + time * 30) % this.height;
+      const foamSize = Math.sin(i + time * 5) * 2 + 3;
+      const foamAlpha = Math.sin(i * 0.5 + time * 3) * 0.1 + 0.05;
+
+      ctx.fillStyle = `rgba(255, 255, 255, ${foamAlpha})`;
+      ctx.globalAlpha = foamAlpha;
+      ctx.beginPath();
+      ctx.arc(foamX, foamY, foamSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  public formCosmicConstellation(): void {
+    // Form all particles into cosmic constellation
+    for (const handParticles of this.handParticles.values()) {
+      for (const particle of handParticles) {
+        particle.formCosmicConstellation();
       }
     }
 
     for (const particle of this.auraParticles) {
-      particle.disperseShape();
+      particle.formCosmicConstellation();
     }
+  }
+
+  public disperseIntoVoid(): void {
+    // Disperse all particles into cosmic void
+    for (const handParticles of this.handParticles.values()) {
+      for (const particle of handParticles) {
+        particle.disperseIntoVoid();
+      }
+    }
+
+    for (const particle of this.auraParticles) {
+      particle.disperseIntoVoid();
+    }
+  }
+
+  public triggerBigBang(): void {
+    // Trigger cosmic explosion from all particles
+    for (const handParticles of this.handParticles.values()) {
+      for (const particle of handParticles) {
+        particle.triggerStellarExplosion();
+      }
+    }
+
+    for (const particle of this.auraParticles) {
+      particle.triggerStellarExplosion();
+    }
+
+    // Temporary cosmic enhancement
+    this.updateSettings({
+      energyLevel: 5.0,
+      colorIntensity: 3.0,
+      animationSpeed: 2.0
+    });
+
+    // Reset after cosmic event
+    setTimeout(() => {
+      this.updateSettings({
+        energyLevel: 1.0,
+        colorIntensity: 1.0,
+        animationSpeed: 1.0
+      });
+    }, 3000);
   }
 
   public setMouseInteraction(x: number, y: number, radius: number = 100): void {

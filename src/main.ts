@@ -79,19 +79,30 @@ class App {
       });
     });
 
-    // Form and Disperse buttons (sistem pembentuk benda)
+    // COSMIC CONTROL BUTTONS
     const formBtn = document.getElementById('formBtn');
     const disperseBtn = document.getElementById('disperseBtn');
+    const bigBangBtn = document.getElementById('bigBangBtn');
 
     formBtn?.addEventListener('click', () => {
       if (this.particleSystem) {
-        this.particleSystem.formHandShape();
+        this.particleSystem.formCosmicConstellation();
+        console.log('🌌 Forming Cosmic Constellation...');
       }
     });
 
     disperseBtn?.addEventListener('click', () => {
       if (this.particleSystem) {
-        this.particleSystem.disperseParticles();
+        this.particleSystem.disperseIntoVoid();
+        console.log('🌌 Dispersing into Cosmic Void...');
+      }
+    });
+
+    // Add Big Bang button if it exists
+    bigBangBtn?.addEventListener('click', () => {
+      if (this.particleSystem) {
+        this.particleSystem.triggerBigBang();
+        console.log('💥 BIG BANG TRIGGERED! COSMIC EXPLOSION!');
       }
     });
 
