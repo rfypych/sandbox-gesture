@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 Advanced Cosmic Network - Neural Universe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+            cursor: none;
+        }
+
+        #cosmicCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(120, 0, 255, 0.1) 0%, rgba(0, 0, 0, 1) 70%),
+                        radial-gradient(circle at 70% 80%, rgba(255, 0, 120, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
+        }
+
+        #videoElement {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 140px;
+            height: 105px;
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            opacity: 0.6;
+            z-index: 100;
+            transform: scaleX(-1);
+        }
+
+        .neural-hud {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #00ffff;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+        }
+
+        .neural-title {
+            font-size: 16px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff0080, #00ffff, #ffff00, #ff0080);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: neuralPulse 2s ease-in-out infinite;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        @keyframes neuralPulse {
+            0%, 100% { background-position: 0% 50%; transform: scale(1); }
+            50% { background-position: 100% 50%; transform: scale(1.05); }
+        }
+
+        .gesture-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+            font-size: 10px;
+        }
+
+        .gesture-node {
+            padding: 5px 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 5px;
+            border-left: 2px solid transparent;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gesture-node::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .gesture-active {
+            background: rgba(0, 255, 255, 0.15) !important;
+            border-left-color: #00ffff !important;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            transform: translateX(2px);
+        }
+
+        .gesture-active::before {
+            left: 100%;
+        }
+
+        .neural-controls {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 100;
+        }
+
+        .neural-btn {
+            padding: 6px 12px;
+            background: linear-gradient(45deg, rgba(255, 0, 128, 0.7), rgba(0, 255, 255, 0.7));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 10px;
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .neural-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.3s ease;
+        }
+
+        .neural-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+        }
+
+        .neural-btn:hover::before {
+            left: 100%;
+        }
+
+        .stats-neural {
+            position: absolute;
+            top: 15px;
+            right: 165px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            font-size: 10px;
+            z-index: 100;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #00ffff;
+        }
+
+        .loading-neural {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            animation: neuralSpin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes neuralSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stat-value { color: #00ffff; font-weight: bold; }
+        .stat-hand { color: #00ff00; font-weight: bold; }
+        .stat-fps { color: #ffff00; font-weight: bold; }
+        .stat-neural { color: #ff00ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="loading-neural"></div>
+        <h2>🧠 Initializing Neural Network...</h2>
+        <p>Preparing cosmic neural universe...</p>
+        <p><small>Camera access required for neural control</small></p>
+    </div>
+
+    <canvas id="cosmicCanvas"></canvas>
+    <video id="videoElement" autoplay muted playsinline></video>
+
+    <div class="neural-hud">
+        <div class="neural-title">🧠 NEURAL COSMOS</div>
+        <div class="gesture-grid">
+            <div id="gestureOpen" class="gesture-node">✋ Open: Neural Expansion</div>
+            <div id="gestureFist" class="gesture-node">✊ Fist: Neural Collapse</div>
+            <div id="gesturePinch" class="gesture-node">🤏 Pinch: Synapse Focus</div>
+            <div id="gesturePoint" class="gesture-node">👉 Point: Neural Flow</div>
+            <div id="gestureMove" class="gesture-node">🌊 Move: Brain Waves</div>
+            <div id="gestureTwo" class="gesture-node">✌️ Peace: Dual Brain</div>
+            <div id="gestureSpread" class="gesture-node">🖐️ Spread: Neural Storm</div>
+        </div>
+    </div>
+
+    <div class="stats-neural">
+        <div>Neurons: <span id="neuronCount" class="stat-value">0</span></div>
+        <div>Synapses: <span id="synapseCount" class="stat-value">0</span></div>
+        <div>Hands: <span id="handCount" class="stat-hand">0</span></div>
+        <div>FPS: <span id="fpsCounter" class="stat-fps">0</span></div>
+        <div>Neural: <span id="neuralStatus" class="stat-neural">ACTIVE</span></div>
+        <div>Energy: <span id="energyLevel" class="stat-neural">100%</span></div>
+    </div>
+
+    <div class="neural-controls">
+        <button class="neural-btn" onclick="resetBrain()">🧠 Reset</button>
+        <button class="neural-btn" onclick="toggleGravity()">⚡ Gravity</button>
+        <button class="neural-btn" onclick="neuralStorm()">⚡ Storm</button>
+        <button class="neural-btn" onclick="toggleSynapses()">🔗 Synapses</button>
+        <button class="neural-btn" onclick="evolveNetwork()">🧬 Evolve</button>
+        <button class="neural-btn" onclick="saveNeuralState()">💾 Save</button>
+    </div>
+
+    <!-- MediaPipe CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+    <script>
+        // Advanced Neural Network System
+        const canvas = document.getElementById('cosmicCanvas');
+        const ctx = canvas.getContext('2d');
+        const video = document.getElementById('videoElement');
+        
+        // Neural network state
+        let neurons = [];
+        let synapses = [];
+        let currentHands = [];
+        let handNeurons = [];
+        let isGravityEnabled = true;
+        let showSynapses = true;
+        let neuralEnergy = 1.0;
+        let evolutionLevel = 1;
+        let animationId;
+        
+        // Performance tracking
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 0;
+        let synapseCount = 0;
+        
+        // Canvas setup
+        function setupCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        setupCanvas();
+        window.addEventListener('resize', setupCanvas);
+
+        // Advanced Neuron Class
+        class Neuron {
+            constructor(x, y, type = 'normal') {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() * 2 - 1) * 0.3;
+                this.vy = (Math.random() * 2 - 1) * 0.3;
+                this.size = Math.random() * 4 + 2;
+                this.baseSize = this.size;
+                this.type = type;
+                this.activation = Math.random();
+                this.threshold = 0.5;
+                this.connections = [];
+                this.maxConnections = type === 'hand' ? 25000 : 8000;
+                this.life = 1.0;
+                this.age = 0;
+                this.maxAge = Math.random() * 2000 + 1000;
+                
+                // Neural properties
+                this.potential = Math.random() * 2 - 1;
+                this.firing = false;
+                this.fireTime = 0;
+                this.refractory = 0;
+                this.dendrites = Math.floor(Math.random() * 5) + 3;
+                this.axonLength = Math.random() * 100 + 50;
+                
+                // Visual properties
+                this.pulse = Math.random() * Math.PI * 2;
+                this.pulseSpeed = Math.random() * 0.08 + 0.03;
+                this.color = this.getNeuralColor();
+                
+                // Special properties for hand neurons
+                if (type === 'hand') {
+                    this.size = 10;
+                    this.baseSize = 10;
+                    this.maxConnections = 30000;
+                    this.activation = 2.0;
+                    this.axonLength = 150;
+                }
+            }
+            
+            getNeuralColor() {
+                const colors = [
+                    'rgba(0, 255, 255, 0.9)',    // Cyan - sensory
+                    'rgba(255, 0, 128, 0.9)',    // Magenta - motor
+                    'rgba(0, 255, 0, 0.9)',      // Green - interneuron
+                    'rgba(255, 215, 0, 0.9)',    // Gold - memory
+                    'rgba(138, 43, 226, 0.9)'    // Purple - processing
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.age++;
+                this.life = 1 - (this.age / this.maxAge);
+                this.pulse += this.pulseSpeed;
+
+                // Don't update hand neuron positions
+                if (this.type === 'hand') {
+                    this.updateNeuralActivity();
+                    return;
+                }
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Apply neural forces
+                this.applyNeuralForces();
+
+                // Boundary conditions
+                this.handleBoundaries();
+
+                // Update neural activity
+                this.updateNeuralActivity();
+
+                return this.life > 0;
+            }
+
+            applyNeuralForces() {
+                // Gravity
+                if (isGravityEnabled) {
+                    this.vy += 0.005;
+                }
+
+                // Neural field interactions
+                this.vx += Math.sin(this.pulse) * 0.01;
+                this.vy += Math.cos(this.pulse * 0.7) * 0.01;
+
+                // Hand neuron interactions
+                handNeurons.forEach(handNeuron => {
+                    const dx = this.x - handNeuron.x;
+                    const dy = this.y - handNeuron.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 200) {
+                        const force = (200 - distance) / 200;
+                        const gesture = handNeuron.gesture || 'open';
+
+                        switch(gesture) {
+                            case 'open':
+                                // Neural expansion
+                                this.vx += (dx / distance) * force * 0.05;
+                                this.vy += (dy / distance) * force * 0.05;
+                                this.activation += force * 0.1;
+                                break;
+                            case 'fist':
+                                // Neural compression
+                                this.vx -= (dx / distance) * force * 0.1;
+                                this.vy -= (dy / distance) * force * 0.1;
+                                this.potential += force * 0.2;
+                                break;
+                            case 'pinch':
+                                // Synaptic focus
+                                this.vx -= (dx / distance) * force * 0.03;
+                                this.vy -= (dy / distance) * force * 0.03;
+                                this.firing = true;
+                                break;
+                            case 'point':
+                                // Directional neural flow
+                                const angle = Math.atan2(dy, dx);
+                                this.vx += Math.cos(angle + Math.PI/2) * force * 0.08;
+                                this.vy += Math.sin(angle + Math.PI/2) * force * 0.08;
+                                break;
+                        }
+                    }
+                });
+            }
+
+            updateNeuralActivity() {
+                // Neural firing mechanism
+                if (this.refractory > 0) {
+                    this.refractory--;
+                    this.firing = false;
+                } else if (this.potential > this.threshold) {
+                    this.firing = true;
+                    this.fireTime = 10;
+                    this.potential = -1;
+                    this.refractory = 20;
+                } else {
+                    this.potential += 0.02;
+                    this.firing = false;
+                }
+
+                if (this.fireTime > 0) {
+                    this.fireTime--;
+                }
+
+                // Size pulsation based on activity
+                const activityFactor = this.firing ? 2 : 1;
+                this.size = this.baseSize * (1 + Math.sin(this.pulse) * 0.3) * activityFactor;
+
+                // Activation decay
+                this.activation *= 0.99;
+            }
+
+            handleBoundaries() {
+                if (this.x > canvas.width || this.x < 0) {
+                    this.vx *= -0.8;
+                    this.x = Math.max(0, Math.min(canvas.width, this.x));
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.vy *= -0.8;
+                    this.y = Math.max(0, Math.min(canvas.height, this.y));
+                }
+            }
+
+            render() {
+                ctx.save();
+
+                // Neural glow based on activity
+                const glowIntensity = this.firing ? 1.0 : this.activation * 0.5;
+                const glowSize = this.size * (2 + glowIntensity * 2);
+
+                // Outer glow
+                const outerGradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, glowSize
+                );
+                outerGradient.addColorStop(0, this.color);
+                outerGradient.addColorStop(0.3, this.color.replace('0.9', '0.4'));
+                outerGradient.addColorStop(1, 'transparent');
+
+                ctx.globalAlpha = glowIntensity * this.life;
+                ctx.fillStyle = outerGradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Neural core
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.firing ? '#FFFFFF' : this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Dendrites visualization
+                if (this.firing) {
+                    ctx.strokeStyle = this.color.replace('0.9', '0.6');
+                    ctx.lineWidth = 1;
+
+                    for (let i = 0; i < this.dendrites; i++) {
+                        const angle = (i / this.dendrites) * Math.PI * 2 + this.pulse;
+                        const length = this.size * 2;
+                        const endX = this.x + Math.cos(angle) * length;
+                        const endY = this.y + Math.sin(angle) * length;
+
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(endX, endY);
+                        ctx.stroke();
+                    }
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Initialize neural network
+        function initializeNeuralNetwork() {
+            neurons = [];
+            for (let i = 0; i < 180; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                neurons.push(new Neuron(x, y, 'normal'));
+            }
+        }
+
+        // Hand tracking system
+        let hands;
+
+        function initializeHandTracking() {
+            hands = new Hands({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                }
+            });
+
+            hands.setOptions({
+                maxNumHands: 2,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.7,
+                minTrackingConfidence: 0.5
+            });
+
+            hands.onResults(onHandResults);
+
+            const camera = new Camera(video, {
+                onFrame: async () => {
+                    await hands.send({image: video});
+                },
+                width: 640,
+                height: 480
+            });
+
+            camera.start();
+        }
+
+        function onHandResults(results) {
+            currentHands = results.multiHandLandmarks || [];
+            document.getElementById('handCount').textContent = currentHands.length;
+
+            updateHandNeurons();
+            processNeuralGestures();
+        }
+
+        function updateHandNeurons() {
+            handNeurons = [];
+
+            currentHands.forEach((hand, handIndex) => {
+                const landmarks = hand;
+
+                // Create hand neurons for all landmarks
+                landmarks.forEach((landmark, index) => {
+                    const handNeuron = new Neuron(
+                        landmark.x * canvas.width,
+                        landmark.y * canvas.height,
+                        'hand'
+                    );
+                    handNeuron.gesture = detectAdvancedGesture(landmarks);
+                    handNeuron.landmarkIndex = index;
+                    handNeurons.push(handNeuron);
+                });
+            });
+        }
+
+        function processNeuralGestures() {
+            // Clear gesture indicators
+            document.querySelectorAll('.gesture-node').forEach(el => {
+                el.classList.remove('gesture-active');
+            });
+
+            currentHands.forEach((hand, handIndex) => {
+                const landmarks = hand;
+                const gesture = detectAdvancedGesture(landmarks);
+
+                switch(gesture) {
+                    case 'open':
+                        document.getElementById('gestureOpen').classList.add('gesture-active');
+                        expandNeuralNetwork();
+                        break;
+                    case 'fist':
+                        document.getElementById('gestureFist').classList.add('gesture-active');
+                        collapseNeuralNetwork();
+                        break;
+                    case 'pinch':
+                        document.getElementById('gesturePinch').classList.add('gesture-active');
+                        focusSynapses();
+                        break;
+                    case 'point':
+                        document.getElementById('gesturePoint').classList.add('gesture-active');
+                        directNeuralFlow();
+                        break;
+                    case 'peace':
+                        document.getElementById('gestureTwo').classList.add('gesture-active');
+                        createDualBrain();
+                        break;
+                    case 'spread':
+                        document.getElementById('gestureSpread').classList.add('gesture-active');
+                        triggerNeuralStorm();
+                        break;
+                }
+
+                document.getElementById('gestureMove').classList.add('gesture-active');
+            });
+        }
+
+        function detectAdvancedGesture(landmarks) {
+            const fingers = [
+                { tip: landmarks[4], pip: landmarks[3] },   // Thumb
+                { tip: landmarks[8], pip: landmarks[6] },   // Index
+                { tip: landmarks[12], pip: landmarks[10] }, // Middle
+                { tip: landmarks[16], pip: landmarks[14] }, // Ring
+                { tip: landmarks[20], pip: landmarks[18] }  // Pinky
+            ];
+
+            const extended = fingers.map(finger => finger.tip.y < finger.pip.y);
+            const extendedCount = extended.filter(Boolean).length;
+
+            // Advanced gesture detection
+            if (extendedCount === 5) return 'spread';  // All fingers extended
+            if (extendedCount >= 4) return 'open';     // Open hand
+            if (extendedCount <= 1) return 'fist';     // Closed fist
+            if (extended[1] && !extended[2] && !extended[3] && !extended[4]) return 'point';
+            if (extended[1] && extended[2] && extendedCount === 2) return 'peace';
+
+            // Pinch detection
+            if (extended[0] && extended[1]) {
+                const distance = Math.sqrt(
+                    Math.pow(landmarks[4].x - landmarks[8].x, 2) +
+                    Math.pow(landmarks[4].y - landmarks[8].y, 2)
+                );
+                if (distance < 0.05) return 'pinch';
+            }
+
+            return 'unknown';
+        }
+
+        // Neural manipulation functions
+        function expandNeuralNetwork() {
+            if (Math.random() < 0.1) {
+                neurons.forEach(neuron => {
+                    neuron.vx *= 1.05;
+                    neuron.vy *= 1.05;
+                    neuron.activation += 0.2;
+                    neuron.potential += 0.1;
+                });
+                neuralEnergy = Math.min(2.0, neuralEnergy + 0.1);
+            }
+        }
+
+        function collapseNeuralNetwork() {
+            if (Math.random() < 0.1) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                neurons.forEach(neuron => {
+                    const dx = centerX - neuron.x;
+                    const dy = centerY - neuron.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance > 0) {
+                        neuron.vx += (dx / distance) * 0.08;
+                        neuron.vy += (dy / distance) * 0.08;
+                        neuron.potential += 0.3;
+                    }
+                });
+            }
+        }
+
+        function focusSynapses() {
+            handNeurons.forEach(handNeuron => {
+                neurons.forEach(neuron => {
+                    const dx = handNeuron.x - neuron.x;
+                    const dy = handNeuron.y - neuron.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance > 0 && distance < 250) {
+                        const force = 0.03;
+                        neuron.vx += (dx / distance) * force;
+                        neuron.vy += (dy / distance) * force;
+                        neuron.firing = true;
+                        neuron.activation = 2.0;
+                    }
+                });
+            });
+        }
+
+        function directNeuralFlow() {
+            if (Math.random() < 0.3) {
+                neurons.forEach(neuron => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const force = 0.15;
+                    neuron.vx += Math.cos(angle) * force;
+                    neuron.vy += Math.sin(angle) * force;
+                    neuron.potential += 0.2;
+                });
+            }
+        }
+
+        function createDualBrain() {
+            if (Math.random() < 0.05) {
+                // Create neurons in dual hemisphere pattern
+                for (let i = 0; i < 20; i++) {
+                    const angle = (i / 20) * Math.PI * 2;
+                    const radius = 80;
+
+                    // Left hemisphere
+                    const x1 = canvas.width * 0.25 + Math.cos(angle) * radius;
+                    const y1 = canvas.height * 0.5 + Math.sin(angle) * radius;
+                    const neuron1 = new Neuron(x1, y1, 'normal');
+                    neuron1.color = 'rgba(255, 0, 128, 0.9)';
+                    neurons.push(neuron1);
+
+                    // Right hemisphere
+                    const x2 = canvas.width * 0.75 + Math.cos(angle) * radius;
+                    const y2 = canvas.height * 0.5 + Math.sin(angle) * radius;
+                    const neuron2 = new Neuron(x2, y2, 'normal');
+                    neuron2.color = 'rgba(0, 255, 255, 0.9)';
+                    neurons.push(neuron2);
+                }
+            }
+        }
+
+        function triggerNeuralStorm() {
+            if (Math.random() < 0.2) {
+                neurons.forEach(neuron => {
+                    neuron.firing = true;
+                    neuron.potential = 2.0;
+                    neuron.activation = 3.0;
+                    neuron.vx += (Math.random() - 0.5) * 2;
+                    neuron.vy += (Math.random() - 0.5) * 2;
+                });
+                neuralEnergy = 2.0;
+            }
+        }
+
+        // Synaptic connections rendering
+        function renderSynapses() {
+            if (!showSynapses) return;
+
+            synapseCount = 0;
+            const allNeurons = [...neurons, ...handNeurons].filter(neuron => neuron.life > 0);
+
+            allNeurons.forEach((neuron, index) => {
+                for (let i = index + 1; i < allNeurons.length; i++) {
+                    const otherNeuron = allNeurons[i];
+
+                    const dx = neuron.x - otherNeuron.x;
+                    const dy = neuron.y - otherNeuron.y;
+                    const distance = dx * dx + dy * dy;
+
+                    const maxDistance = Math.min(neuron.maxConnections, otherNeuron.maxConnections);
+
+                    if (distance < maxDistance) {
+                        synapseCount++;
+
+                        const ratio = (maxDistance - distance) / maxDistance;
+                        const alpha = ratio * 0.6;
+                        const lineWidth = ratio * 3;
+
+                        // Synaptic activity visualization
+                        const activity = (neuron.firing || otherNeuron.firing) ? 1.0 : 0.3;
+                        const synapseColor = (neuron.firing && otherNeuron.firing) ?
+                            'rgba(255, 255, 255, ' + (alpha * activity) + ')' :
+                            'rgba(0, 255, 255, ' + (alpha * activity * 0.5) + ')';
+
+                        ctx.save();
+                        ctx.globalAlpha = alpha * activity;
+                        ctx.strokeStyle = synapseColor;
+                        ctx.lineWidth = lineWidth;
+                        ctx.lineCap = 'round';
+
+                        // Neural signal flow animation
+                        if (neuron.firing || otherNeuron.firing) {
+                            const flowOffset = (performance.now() * 0.005) % 1;
+                            const flowX = neuron.x + (otherNeuron.x - neuron.x) * flowOffset;
+                            const flowY = neuron.y + (otherNeuron.y - neuron.y) * flowOffset;
+
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                            ctx.beginPath();
+                            ctx.arc(flowX, flowY, 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+
+                        ctx.beginPath();
+                        ctx.moveTo(neuron.x, neuron.y);
+                        ctx.lineTo(otherNeuron.x, otherNeuron.y);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            });
+        }
+
+        // Animation loop
+        function animate() {
+            // Performance tracking
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - lastTime >= 1000) {
+                fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                document.getElementById('fpsCounter').textContent = fps;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+
+            // Clear canvas with neural background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update neurons
+            neurons = neurons.filter(neuron => {
+                const alive = neuron.update();
+                return alive;
+            });
+
+            // Maintain neural density
+            if (neurons.length < 120 && Math.random() < 0.03) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                neurons.push(new Neuron(x, y, 'normal'));
+            }
+
+            // Update neural energy
+            neuralEnergy *= 0.995;
+            const energyPercent = Math.round(neuralEnergy * 50);
+            document.getElementById('energyLevel').textContent = energyPercent + '%';
+
+            // Update counters
+            document.getElementById('neuronCount').textContent = neurons.length + handNeurons.length;
+            document.getElementById('synapseCount').textContent = synapseCount;
+
+            // Render synapses
+            renderSynapses();
+
+            // Render neurons
+            [...neurons, ...handNeurons].forEach(neuron => {
+                neuron.render();
+            });
+
+            // Render hand tracking
+            renderHandTracking();
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function renderHandTracking() {
+            if (currentHands.length === 0) return;
+
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.6)';
+            ctx.lineWidth = 1;
+
+            currentHands.forEach(hand => {
+                const landmarks = hand;
+
+                // Neural pathway connections
+                const connections = [
+                    [0,1],[1,2],[2,3],[3,4], [0,5],[5,6],[6,7],[7,8],
+                    [0,9],[9,10],[10,11],[11,12], [0,13],[13,14],[14,15],[15,16],
+                    [0,17],[17,18],[18,19],[19,20], [5,9],[9,13],[13,17]
+                ];
+
+                // Draw neural pathways
+                ctx.beginPath();
+                connections.forEach(([start, end]) => {
+                    const startPoint = landmarks[start];
+                    const endPoint = landmarks[end];
+                    ctx.moveTo(startPoint.x * canvas.width, startPoint.y * canvas.height);
+                    ctx.lineTo(endPoint.x * canvas.width, endPoint.y * canvas.height);
+                });
+                ctx.stroke();
+
+                // Draw neural nodes
+                landmarks.forEach((landmark, index) => {
+                    const x = landmark.x * canvas.width;
+                    const y = landmark.y * canvas.height;
+                    const size = [4, 8, 12, 16, 20, 9].includes(index) ? 3 : 1.5;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            });
+
+            ctx.restore();
+        }
+
+        // Control functions
+        function resetBrain() {
+            neurons = [];
+            handNeurons = [];
+            neuralEnergy = 1.0;
+            evolutionLevel = 1;
+            initializeNeuralNetwork();
+            console.log('🧠 Neural network reset!');
+        }
+
+        function toggleGravity() {
+            isGravityEnabled = !isGravityEnabled;
+            console.log(`⚡ Gravity ${isGravityEnabled ? 'enabled' : 'disabled'}`);
+        }
+
+        function neuralStorm() {
+            neurons.forEach(neuron => {
+                neuron.firing = true;
+                neuron.potential = 3.0;
+                neuron.activation = 5.0;
+                const angle = Math.random() * Math.PI * 2;
+                const force = Math.random() * 8 + 4;
+                neuron.vx += Math.cos(angle) * force;
+                neuron.vy += Math.sin(angle) * force;
+            });
+            neuralEnergy = 2.0;
+            console.log('⚡ Neural storm triggered!');
+        }
+
+        function toggleSynapses() {
+            showSynapses = !showSynapses;
+            document.getElementById('neuralStatus').textContent = showSynapses ? 'ACTIVE' : 'NEURONS ONLY';
+            console.log(`🔗 Synapses ${showSynapses ? 'enabled' : 'disabled'}`);
+        }
+
+        function evolveNetwork() {
+            evolutionLevel++;
+
+            // Evolutionary improvements
+            neurons.forEach(neuron => {
+                neuron.maxConnections *= 1.2;
+                neuron.axonLength *= 1.1;
+                neuron.dendrites = Math.min(8, neuron.dendrites + 1);
+                neuron.threshold *= 0.9; // More sensitive
+
+                // Color evolution
+                if (evolutionLevel % 3 === 0) {
+                    neuron.color = neuron.getNeuralColor();
+                }
+            });
+
+            // Add evolved neurons
+            for (let i = 0; i < 10; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const evolvedNeuron = new Neuron(x, y, 'normal');
+                evolvedNeuron.size *= 1.2;
+                evolvedNeuron.maxConnections *= 1.5;
+                neurons.push(evolvedNeuron);
+            }
+
+            console.log(`🧬 Network evolved to level ${evolutionLevel}!`);
+        }
+
+        function saveNeuralState() {
+            const neuralData = {
+                neurons: neurons.length,
+                synapses: synapseCount,
+                energy: Math.round(neuralEnergy * 100),
+                evolution: evolutionLevel,
+                timestamp: new Date().toISOString()
+            };
+            console.log('💾 Neural state saved:', neuralData);
+        }
+
+        // Initialize the advanced neural network
+        async function init() {
+            try {
+                await initializeHandTracking();
+                initializeNeuralNetwork();
+                document.getElementById('loading').style.display = 'none';
+                animate();
+                console.log('🧠 Advanced Neural Network initialized!');
+                console.log('✋ Neural control gestures:');
+                console.log('   ✋ Open Hand - Neural expansion');
+                console.log('   ✊ Fist - Neural collapse');
+                console.log('   🤏 Pinch - Synaptic focus');
+                console.log('   👉 Point - Neural flow direction');
+                console.log('   ✌️ Peace - Dual brain hemispheres');
+                console.log('   🖐️ Spread - Neural storm');
+            } catch (error) {
+                console.error('Failed to initialize neural network:', error);
+                document.getElementById('loading').innerHTML = `
+                    <h2>❌ Neural Initialization Failed</h2>
+                    <p>Please refresh and allow camera access</p>
+                `;
+            }
+        }
+
+        // Start the advanced neural experience
+        init();
+    </script>
+</body>
+</html>
