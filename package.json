@@ -1,0 +1,36 @@
+{
+  "name": "cosmic-network-universe",
+  "version": "1.0.0",
+  "description": "Revolutionary hand-controlled cosmic network universe with neural simulation",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "start": "python -m http.server 8000",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "cosmic",
+    "network",
+    "universe",
+    "hand-tracking",
+    "neural-network",
+    "particles",
+    "mediapipe",
+    "interactive",
+    "visualization",
+    "physics-simulation"
+  ],
+  "author": "Cosmic Network Universe Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cosmic-network-universe/cosmic-network-universe.git"
+  },
+  "homepage": "https://cosmic-network-universe.vercel.app",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}

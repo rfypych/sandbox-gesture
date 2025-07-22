@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 Cosmic Network Universe - Hand Controlled</title>
+    <meta name="description" content="Revolutionary hand-controlled cosmic network universe with neural simulation">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+            cursor: none;
+        }
+
+        .hero-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at 30% 40%, rgba(120, 0, 255, 0.2) 0%, rgba(0, 0, 0, 1) 70%),
+                        radial-gradient(circle at 70% 80%, rgba(255, 0, 120, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 50%);
+            z-index: 100;
+        }
+
+        .cosmic-title {
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff0080, #00ffff, #ffff00, #ff0080);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: cosmicPulse 3s ease-in-out infinite;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        @keyframes cosmicPulse {
+            0%, 100% { 
+                background-position: 0% 50%; 
+                transform: scale(1);
+            }
+            50% { 
+                background-position: 100% 50%; 
+                transform: scale(1.05);
+            }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            opacity: 0.8;
+            background: linear-gradient(45deg, #00ffff, #ff0080);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .experience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            padding: 0 2rem;
+        }
+
+        .experience-card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .experience-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .experience-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.3);
+            border-color: #ff0080;
+        }
+
+        .experience-card:hover::before {
+            left: 100%;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #00ffff;
+        }
+
+        .card-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .card-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .card-features li {
+            padding: 0.5rem 0;
+            border-left: 3px solid #ff0080;
+            padding-left: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .launch-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #ff0080, #00ffff);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        .launch-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .cosmic-title {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .experience-grid {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+            }
+            
+            .experience-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Background animation */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="hero-section">
+        <h1 class="cosmic-title">🌌 COSMIC NETWORK UNIVERSE</h1>
+        <p class="subtitle">Hand-Controlled Neural Network Experience</p>
+        
+        <div class="experience-grid">
+            <div class="experience-card" onclick="window.open('cosmic-network-universe.html', '_blank')">
+                <h3 class="card-title">🌐 Basic Network Experience</h3>
+                <p class="card-description">
+                    Interactive network particles controlled by hand gestures. Perfect introduction to cosmic network physics.
+                </p>
+                <ul class="card-features">
+                    <li>✋ 6 Hand Gesture Controls</li>
+                    <li>🌈 4 Visual Themes</li>
+                    <li>🔗 Real-time Connections</li>
+                    <li>⚡ Physics Simulation</li>
+                    <li>📊 Performance Monitoring</li>
+                </ul>
+                <a href="cosmic-network-universe.html" class="launch-btn">🚀 Launch Basic Experience</a>
+            </div>
+            
+            <div class="experience-card" onclick="window.open('advanced-cosmic-network.html', '_blank')">
+                <h3 class="card-title">🧠 Advanced Neural Network</h3>
+                <p class="card-description">
+                    Advanced neural simulation with realistic brain behavior, synaptic transmission, and evolution.
+                </p>
+                <ul class="card-features">
+                    <li>🧠 Neural Firing Patterns</li>
+                    <li>⚡ Synaptic Signal Flow</li>
+                    <li>🧬 Network Evolution</li>
+                    <li>🌊 Neural Storm Effects</li>
+                    <li>🎯 Brain Hemisphere Simulation</li>
+                </ul>
+                <a href="advanced-cosmic-network.html" class="launch-btn">🧠 Launch Neural Experience</a>
+            </div>
+            
+            <div class="experience-card" onclick="window.open('cosmic-universe.html', '_blank')">
+                <h3 class="card-title">🌌 Cosmic Universe Animator</h3>
+                <p class="card-description">
+                    Create galaxies, black holes, stars, and cosmic phenomena with your hands in this universe simulator.
+                </p>
+                <ul class="card-features">
+                    <li>🌌 Galaxy Formation</li>
+                    <li>🕳️ Black Hole Physics</li>
+                    <li>⭐ Star Birth & Death</li>
+                    <li>☄️ Comet Streams</li>
+                    <li>🌊 Gravitational Waves</li>
+                </ul>
+                <a href="cosmic-universe.html" class="launch-btn">🌟 Launch Universe</a>
+            </div>
+            
+            <div class="experience-card" onclick="window.open('cosmic-symphony.html', '_blank')">
+                <h3 class="card-title">🎵 Cosmic Symphony</h3>
+                <p class="card-description">
+                    The ultimate cosmic experience with 3D physics, quantum effects, and stellar evolution simulation.
+                </p>
+                <ul class="card-features">
+                    <li>🌟 3D Particle System</li>
+                    <li>⚛️ Quantum Effects</li>
+                    <li>🌡️ Stellar Classification</li>
+                    <li>🌀 Relativistic Physics</li>
+                    <li>🎨 Advanced Rendering</li>
+                </ul>
+                <a href="cosmic-symphony.html" class="launch-btn">🎵 Launch Symphony</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>🌌 Experience the universe in your hands | Created with ❤️ and cosmic inspiration</p>
+    </div>
+
+    <script>
+        // Create animated stars background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 100;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // Initialize stars
+        createStars();
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case '1':
+                    window.open('cosmic-network-universe.html', '_blank');
+                    break;
+                case '2':
+                    window.open('advanced-cosmic-network.html', '_blank');
+                    break;
+                case '3':
+                    window.open('cosmic-universe.html', '_blank');
+                    break;
+                case '4':
+                    window.open('cosmic-symphony.html', '_blank');
+                    break;
+            }
+        });
+        
+        console.log('🌌 Welcome to Cosmic Network Universe!');
+        console.log('🎮 Keyboard shortcuts:');
+        console.log('   1 - Basic Network Experience');
+        console.log('   2 - Advanced Neural Network');
+        console.log('   3 - Cosmic Universe Animator');
+        console.log('   4 - Cosmic Symphony');
+        console.log('✋ Use hand gestures to control the cosmic experiences!');
+    </script>
+</body>
+</html>
