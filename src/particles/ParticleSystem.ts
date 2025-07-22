@@ -118,41 +118,60 @@ export class ParticleSystem {
       const handKey = `hand_${handIndex}`;
       const handParticles: Particle[] = [];
 
-      // Create particles for each landmark
+      // Create multiple particles for each landmark untuk efek yang lebih padat
       for (let landmarkIndex = 0; landmarkIndex < 21; landmarkIndex++) {
         const role = this.handLandmarkMap.get(landmarkIndex) || ParticleRole.FINGER_BONE;
         const fingerIndex = this.getFingerIndex(landmarkIndex);
         const jointIndex = this.getJointIndex(landmarkIndex);
 
-        const particle = new Particle(
-          this.width / 2,
-          this.height / 2,
-          role,
-          fingerIndex,
-          jointIndex
-        );
+        // Create multiple particles per landmark untuk efek pembentuk benda
+        const particlesPerLandmark = this.getParticlesPerLandmark(role);
 
-        particle.setActive(false); // Initially inactive
-        handParticles.push(particle);
+        for (let i = 0; i < particlesPerLandmark; i++) {
+          const particle = new Particle(
+            this.width / 2,
+            this.height / 2,
+            role,
+            fingerIndex,
+            jointIndex
+          );
+
+          particle.setActive(false); // Initially inactive
+          handParticles.push(particle);
+        }
       }
 
-      // Add palm center particle
-      const palmParticle = new Particle(
-        this.width / 2,
-        this.height / 2,
-        ParticleRole.PALM_CENTER
-      );
-      palmParticle.setActive(false);
-      handParticles.push(palmParticle);
+      // Add extra particles for palm area
+      for (let i = 0; i < 20; i++) {
+        const palmParticle = new Particle(
+          this.width / 2,
+          this.height / 2,
+          ParticleRole.PALM_CENTER
+        );
+        palmParticle.setActive(false);
+        handParticles.push(palmParticle);
+      }
 
       this.handParticles.set(handKey, handParticles);
     }
 
-    // Initialize connection particles
+    // Initialize connection particles (fewer for cleaner look)
     this.initializeConnectionParticles();
 
     // Initialize aura particles
     this.initializeAuraParticles();
+  }
+
+  private getParticlesPerLandmark(role: ParticleRole): number {
+    // Jumlah partikel per landmark berdasarkan role
+    switch (role) {
+      case ParticleRole.PALM_CENTER: return 8;
+      case ParticleRole.FINGER_TIP: return 6;
+      case ParticleRole.FINGER_JOINT: return 4;
+      case ParticleRole.FINGER_BONE: return 3;
+      case ParticleRole.WRIST: return 5;
+      default: return 3;
+    }
   }
 
   private getFingerIndex(landmarkIndex: number): number {
@@ -235,26 +254,66 @@ export class ParticleSystem {
 
       if (!handParticles) continue;
 
-      // Update landmark particles
-      for (let i = 0; i < Math.min(21, hand.landmarks.length); i++) {
-        const landmark = hand.landmarks[i];
-        const particle = handParticles[i];
+      // Distribute particles across landmarks
+      let particleIndex = 0;
 
-        if (particle) {
-          particle.setActive(true);
-          particle.setTarget(landmark.x, landmark.y);
-          particle.setEnergy(this.settings.energyLevel);
-          particle.update(deltaTime * this.settings.animationSpeed);
+      // Update landmark particles
+      for (let landmarkIndex = 0; landmarkIndex < Math.min(21, hand.landmarks.length); landmarkIndex++) {
+        const landmark = hand.landmarks[landmarkIndex];
+        const role = this.handLandmarkMap.get(landmarkIndex) || ParticleRole.FINGER_BONE;
+        const particlesPerLandmark = this.getParticlesPerLandmark(role);
+
+        // Update particles for this landmark
+        for (let i = 0; i < particlesPerLandmark && particleIndex < handParticles.length; i++) {
+          const particle = handParticles[particleIndex];
+
+          if (particle) {
+            particle.setActive(true);
+
+            // Add slight random offset untuk efek yang lebih natural
+            const offsetX = (Math.random() - 0.5) * 10;
+            const offsetY = (Math.random() - 0.5) * 10;
+
+            particle.setTarget(landmark.x + offsetX, landmark.y + offsetY);
+            particle.setEnergy(this.settings.energyLevel);
+
+            // Pass mouse/interaction data untuk repulsion effect
+            const mouseData = this.getMouseInteractionData();
+            particle.update(
+              deltaTime * this.settings.animationSpeed,
+              mouseData.x,
+              mouseData.y,
+              mouseData.radius
+            );
+          }
+          particleIndex++;
         }
       }
 
-      // Update palm center particle
-      const palmParticle = handParticles[21];
-      if (palmParticle) {
-        palmParticle.setActive(true);
-        palmParticle.setTarget(hand.palmCenter.x, hand.palmCenter.y);
-        palmParticle.setEnergy(this.settings.energyLevel * 1.5); // Palm has more energy
-        palmParticle.update(deltaTime * this.settings.animationSpeed);
+      // Update remaining particles for palm area
+      while (particleIndex < handParticles.length) {
+        const particle = handParticles[particleIndex];
+        if (particle) {
+          particle.setActive(true);
+
+          // Distribute around palm center
+          const angle = (particleIndex / (handParticles.length - 21)) * Math.PI * 2;
+          const radius = Math.random() * 30;
+          const palmX = hand.palmCenter.x + Math.cos(angle) * radius;
+          const palmY = hand.palmCenter.y + Math.sin(angle) * radius;
+
+          particle.setTarget(palmX, palmY);
+          particle.setEnergy(this.settings.energyLevel * 1.2);
+
+          const mouseData = this.getMouseInteractionData();
+          particle.update(
+            deltaTime * this.settings.animationSpeed,
+            mouseData.x,
+            mouseData.y,
+            mouseData.radius
+          );
+        }
+        particleIndex++;
       }
     }
 
@@ -267,6 +326,12 @@ export class ParticleSystem {
         handParticles.forEach(particle => particle.setActive(false));
       }
     }
+  }
+
+  private getMouseInteractionData(): { x?: number; y?: number; radius: number } {
+    // This will be enhanced to get actual mouse/touch data
+    // For now, return empty data
+    return { radius: 100 };
   }
 
   private updateConnectionParticles(deltaTime: number): void {
@@ -480,22 +545,23 @@ export class ParticleSystem {
   public render(ctx: CanvasRenderingContext2D): void {
     ctx.save();
 
+    // Apply trail effect (seperti sistem pembentuk benda)
+    ctx.fillStyle = 'rgba(17, 24, 39, 0.25)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
     // Render connection particles first (behind everything)
     if (this.settings.showConnections) {
       this.renderConnections(ctx);
     }
 
-    // Render aura particles
-    ctx.globalCompositeOperation = 'screen';
+    // Render aura particles with subtle glow
     for (const auraParticle of this.auraParticles) {
       if (auraParticle.isAlive()) {
         auraParticle.render(ctx);
       }
     }
-    ctx.globalCompositeOperation = 'source-over';
 
-    // Render hand particles with enhanced blending
-    ctx.globalCompositeOperation = 'screen';
+    // Render hand particles (main attraction)
     for (const handParticles of this.handParticles.values()) {
       for (const particle of handParticles) {
         if (particle.isAlive()) {
@@ -503,7 +569,6 @@ export class ParticleSystem {
         }
       }
     }
-    ctx.globalCompositeOperation = 'source-over';
 
     ctx.restore();
   }
@@ -716,5 +781,47 @@ export class ParticleSystem {
 
   public getPerformanceMode(): string {
     return this.performanceMode;
+  }
+
+  public formHandShape(): void {
+    // Membentuk semua partikel ke bentuk tangan
+    for (const handParticles of this.handParticles.values()) {
+      for (const particle of handParticles) {
+        particle.formShape();
+      }
+    }
+
+    for (const particle of this.auraParticles) {
+      particle.formShape();
+    }
+  }
+
+  public disperseParticles(): void {
+    // Menyebarkan semua partikel secara acak
+    for (const handParticles of this.handParticles.values()) {
+      for (const particle of handParticles) {
+        particle.disperseShape();
+      }
+    }
+
+    for (const particle of this.auraParticles) {
+      particle.disperseShape();
+    }
+  }
+
+  public setMouseInteraction(x: number, y: number, radius: number = 100): void {
+    // Set mouse interaction data untuk repulsion effect
+    this.mouseInteraction = { x, y, radius };
+  }
+
+  public clearMouseInteraction(): void {
+    // Clear mouse interaction
+    this.mouseInteraction = { radius: 100 };
+  }
+
+  private mouseInteraction: { x?: number; y?: number; radius: number } = { radius: 100 };
+
+  private getMouseInteractionData(): { x?: number; y?: number; radius: number } {
+    return this.mouseInteraction;
   }
 }

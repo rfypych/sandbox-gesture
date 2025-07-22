@@ -14,11 +14,13 @@ export class InputManager {
     onPointerMove: ((x: number, y: number) => void)[];
     onPointerUp: ((x: number, y: number) => void)[];
     onGesture: ((gesture: string, data: any) => void)[];
+    onMouseInteraction: ((x: number, y: number, isActive: boolean) => void)[];
   } = {
     onPointerDown: [],
     onPointerMove: [],
     onPointerUp: [],
-    onGesture: []
+    onGesture: [],
+    onMouseInteraction: []
   };
 
   constructor(canvas: HTMLCanvasElement) {
@@ -63,16 +65,18 @@ export class InputManager {
   private handleMouseMove(event: MouseEvent): void {
     const pos = this.getCanvasPosition(event.clientX, event.clientY);
     this.mousePosition = pos;
-    
+
     this.callbacks.onPointerMove.forEach(callback => callback(pos.x, pos.y));
+    this.callbacks.onMouseInteraction.forEach(callback => callback(pos.x, pos.y, this.isMouseDown));
   }
 
   private handleMouseUp(event: MouseEvent): void {
     if (this.isMouseDown) {
       this.isMouseDown = false;
       const pos = this.getCanvasPosition(event.clientX, event.clientY);
-      
+
       this.callbacks.onPointerUp.forEach(callback => callback(pos.x, pos.y));
+      this.callbacks.onMouseInteraction.forEach(callback => callback(pos.x, pos.y, false));
     }
   }
 
@@ -139,6 +143,10 @@ export class InputManager {
 
   public onGesture(callback: (gesture: string, data: any) => void): void {
     this.callbacks.onGesture.push(callback);
+  }
+
+  public onMouseInteraction(callback: (x: number, y: number, isActive: boolean) => void): void {
+    this.callbacks.onMouseInteraction.push(callback);
   }
 
   public getMousePosition(): { x: number; y: number } {

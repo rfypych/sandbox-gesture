@@ -26,8 +26,8 @@ export class Particle {
   public targetY: number;
   public baseX: number;
   public baseY: number;
-  public speedX: number;
-  public speedY: number;
+  public originX: number;
+  public originY: number;
   public size: number;
   public baseSize: number;
   public color: string;
@@ -35,7 +35,7 @@ export class Particle {
   public life: number;
   public opacity: number;
   public baseOpacity: number;
-  public mass: number;
+  public density: number;
   public role: ParticleRole;
   public fingerIndex: number;
   public jointIndex: number;
@@ -46,9 +46,11 @@ export class Particle {
   public frequency: number;
   public trail: Vector2[];
   public maxTrailLength: number;
+  public isForming: boolean;
+  public formingSpeed: number;
 
   constructor(x: number, y: number, role: ParticleRole = ParticleRole.AURA, fingerIndex: number = -1, jointIndex: number = -1) {
-    // Posisi dan target
+    // Posisi dan target (mengikuti sistem pembentuk benda)
     this.x = x;
     this.y = y;
     this.targetX = x;
@@ -56,14 +58,23 @@ export class Particle {
     this.baseX = x;
     this.baseY = y;
 
+    // Posisi asal acak untuk efek pembentukan
+    this.originX = Math.random() * (window.innerWidth || 800);
+    this.originY = Math.random() * (window.innerHeight || 600);
+
     // Role dan identitas
     this.role = role;
     this.fingerIndex = fingerIndex;
     this.jointIndex = jointIndex;
-    this.isActive = true;
+    this.isActive = false; // Start inactive
 
     // Properti fisik berdasarkan role
     this.initializeByRole();
+
+    // Sistem pembentuk benda
+    this.density = (Math.random() * 40) + 5; // Faktor "berat" atau inersia
+    this.isForming = false;
+    this.formingSpeed = 20; // Kecepatan konvergensi ke bentuk
 
     // Animasi dan efek
     this.energy = 1.0;
@@ -75,10 +86,9 @@ export class Particle {
     this.trail = [];
     this.maxTrailLength = this.getTrailLength();
 
-    // Physics
-    this.speedX = 0;
-    this.speedY = 0;
-    this.mass = this.size * 0.1;
+    // Set posisi awal ke origin untuk efek pembentukan
+    this.x = this.originX;
+    this.y = this.originY;
   }
 
   private initializeByRole(): void {
@@ -119,9 +129,13 @@ export class Particle {
     this.color = palette[Math.floor(Math.random() * palette.length)];
     this.baseColor = this.color;
 
-    // Set size
+    // Set size (lebih kecil untuk efek pembentuk benda)
     const sizeRange = sizeMaps[this.role];
     this.size = Math.random() * (sizeRange.max - sizeRange.min) + sizeRange.min;
+    this.baseSize = this.size;
+
+    // Ukuran lebih kecil untuk partikel pembentuk
+    this.size = Math.max(1.5, this.size * 0.6);
     this.baseSize = this.size;
 
     // Set opacity
@@ -151,18 +165,21 @@ export class Particle {
     return trailMaps[this.role];
   }
 
-  public update(deltaTime: number): void {
+  public update(deltaTime: number, mouseX?: number, mouseY?: number, mouseRadius: number = 100): void {
     if (!this.isActive) return;
 
     // Update phase untuk animasi
     this.phase += this.frequency;
 
-    // Smooth movement ke target
-    const lerpFactor = 0.1;
-    this.x += (this.targetX - this.x) * lerpFactor;
-    this.y += (this.targetY - this.y) * lerpFactor;
+    // Interaksi dengan mouse/hand (sistem pembentuk benda)
+    if (mouseX !== undefined && mouseY !== undefined) {
+      this.handleMouseInteraction(mouseX, mouseY, mouseRadius);
+    } else {
+      // Jika tidak ada interaksi, bergerak ke target (bentuk tangan)
+      this.moveToTarget();
+    }
 
-    // Organic movement berdasarkan role
+    // Organic movement berdasarkan role (lebih subtle)
     this.applyOrganicMovement();
 
     // Update trail
@@ -170,46 +187,68 @@ export class Particle {
 
     // Update visual properties berdasarkan energy
     this.updateVisualProperties();
+  }
 
-    // Apply physics jika ada external forces
-    this.x += this.speedX * deltaTime;
-    this.y += this.speedY * deltaTime;
+  private handleMouseInteraction(mouseX: number, mouseY: number, mouseRadius: number): void {
+    // Interaksi dengan mouse: mendorong partikel menjauh (seperti sistem pembentuk benda)
+    const dxMouse = this.x - mouseX;
+    const dyMouse = this.y - mouseY;
+    const distanceMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
 
-    // Apply drag
-    this.speedX *= 0.95;
-    this.speedY *= 0.95;
+    if (distanceMouse < mouseRadius) {
+      // Partikel berada dalam jangkauan mouse
+      const forceDirectionX = dxMouse / distanceMouse;
+      const forceDirectionY = dyMouse / distanceMouse;
+      const force = (mouseRadius - distanceMouse) / mouseRadius;
+      const directionX = forceDirectionX * force * this.density * 0.8;
+      const directionY = forceDirectionY * force * this.density * 0.8;
+      this.x += directionX;
+      this.y += directionY;
+    } else {
+      // Jika tidak ada interaksi mouse, partikel bergerak ke targetnya
+      this.moveToTarget();
+    }
+  }
+
+  private moveToTarget(): void {
+    // Bergerak ke target dengan kecepatan berdasarkan density
+    const dxTarget = this.targetX - this.x;
+    const dyTarget = this.targetY - this.y;
+    this.x += dxTarget / this.formingSpeed;
+    this.y += dyTarget / this.formingSpeed;
   }
 
   private applyOrganicMovement(): void {
+    // Gerakan organik yang lebih subtle untuk sistem pembentuk benda
     const time = performance.now() * 0.001;
 
     switch (this.role) {
       case ParticleRole.FINGER_TIP:
-        // Finger tips have more dynamic movement
-        this.x += Math.sin(this.phase) * this.amplitude * 0.5;
-        this.y += Math.cos(this.phase * 1.3) * this.amplitude * 0.3;
+        // Finger tips have subtle breathing effect
+        const breathe = Math.sin(time * 3) * 0.5;
+        this.size = this.baseSize * (1 + breathe * 0.2);
         break;
 
       case ParticleRole.PALM_CENTER:
-        // Palm center pulses
+        // Palm center pulses gently
         const pulse = Math.sin(time * 2) * 0.5 + 0.5;
-        this.size = this.baseSize * (0.8 + pulse * 0.4);
+        this.size = this.baseSize * (0.9 + pulse * 0.2);
         break;
 
       case ParticleRole.FINGER_BONE:
-        // Subtle wave motion along finger bones
-        this.x += Math.sin(this.phase + this.jointIndex) * this.amplitude * 0.2;
+        // Very subtle movement for finger bones
+        const wave = Math.sin(this.phase + this.jointIndex) * 0.3;
+        this.x += wave;
         break;
 
       case ParticleRole.AURA:
-        // Floating aura particles
-        this.x += Math.sin(this.phase) * this.amplitude;
-        this.y += Math.cos(this.phase * 0.7) * this.amplitude * 0.8;
+        // Aura particles float gently
+        this.x += Math.sin(this.phase) * 0.5;
+        this.y += Math.cos(this.phase * 0.7) * 0.3;
         break;
 
       case ParticleRole.CONNECTION:
-        // Connections have minimal movement
-        this.x += Math.sin(this.phase) * this.amplitude * 0.1;
+        // Connections are stable
         break;
     }
   }
@@ -260,13 +299,29 @@ export class Particle {
     ctx.save();
     ctx.globalAlpha = this.opacity;
 
-    // Render trail first
-    this.renderTrail(ctx);
-
-    // Render main particle based on role
-    this.renderByRole(ctx);
+    // Render simple particle (sistem pembentuk benda style)
+    this.renderSimpleParticle(ctx);
 
     ctx.restore();
+  }
+
+  private renderSimpleParticle(ctx: CanvasRenderingContext2D): void {
+    // Render partikel sederhana dengan warna HSL yang vibrant
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Add subtle glow effect for finger tips and palm center
+    if (this.role === ParticleRole.FINGER_TIP || this.role === ParticleRole.PALM_CENTER) {
+      ctx.shadowColor = this.color;
+      ctx.shadowBlur = this.size * 2;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
   }
 
   private renderTrail(ctx: CanvasRenderingContext2D): void {
@@ -469,15 +524,37 @@ export class Particle {
   public setTarget(x: number, y: number): void {
     this.targetX = x;
     this.targetY = y;
+    this.baseX = x;
+    this.baseY = y;
   }
 
   public setActive(active: boolean): void {
     this.isActive = active;
     if (!active) {
       this.opacity = 0;
+      // Return to origin when inactive
+      this.targetX = this.originX;
+      this.targetY = this.originY;
     } else {
       this.opacity = this.baseOpacity;
+      // Move to hand position when active
+      this.targetX = this.baseX;
+      this.targetY = this.baseY;
     }
+  }
+
+  public formShape(): void {
+    // Membentuk ke posisi target (bentuk tangan)
+    this.isForming = true;
+    this.targetX = this.baseX;
+    this.targetY = this.baseY;
+  }
+
+  public disperseShape(): void {
+    // Menyebar ke posisi acak
+    this.isForming = false;
+    this.targetX = Math.random() * (window.innerWidth || 800);
+    this.targetY = Math.random() * (window.innerHeight || 600);
   }
 
   public setEnergy(energy: number): void {

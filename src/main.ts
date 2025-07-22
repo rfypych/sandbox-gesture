@@ -79,6 +79,22 @@ class App {
       });
     });
 
+    // Form and Disperse buttons (sistem pembentuk benda)
+    const formBtn = document.getElementById('formBtn');
+    const disperseBtn = document.getElementById('disperseBtn');
+
+    formBtn?.addEventListener('click', () => {
+      if (this.particleSystem) {
+        this.particleSystem.formHandShape();
+      }
+    });
+
+    disperseBtn?.addEventListener('click', () => {
+      if (this.particleSystem) {
+        this.particleSystem.disperseParticles();
+      }
+    });
+
     // Setup settings controls
     this.setupSettingsControls();
   }
@@ -206,6 +222,28 @@ class App {
     window.addEventListener('resize', resize);
   }
 
+  private setupInputHandlers(): void {
+    // Mouse interaction untuk sistem pembentuk benda
+    this.inputManager.onMouseInteraction((x, y, isActive) => {
+      if (isActive) {
+        this.particleSystem.setMouseInteraction(x, y, 100);
+      } else {
+        this.particleSystem.clearMouseInteraction();
+      }
+    });
+
+    // Touch controls untuk mobile
+    this.inputManager.onPointerMove((x, y) => {
+      if (this.inputManager.isPointerDown()) {
+        this.particleSystem.setMouseInteraction(x, y, 100);
+      }
+    });
+
+    this.inputManager.onPointerUp(() => {
+      this.particleSystem.clearMouseInteraction();
+    });
+  }
+
   private async init(): Promise<void> {
     try {
       // Initialize systems
@@ -213,6 +251,9 @@ class App {
       this.inputManager = new InputManager(this.canvas);
       this.handTracker = new HandTracker(this.video);
       this.game = new Game(this.particleSystem, this.handTracker, this.inputManager);
+
+      // Setup input handlers untuk sistem pembentuk benda
+      this.setupInputHandlers();
 
       // Setup hand tracking
       await this.handTracker.initialize();
